@@ -86,6 +86,7 @@ void setup()
 {
   Serial.begin(115200);
   inicializarReles();
+  carregarEstadoSalvo();
   conectarWiFi();
 
   esp_task_wdt_init(5, true);

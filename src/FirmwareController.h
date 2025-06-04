@@ -37,14 +37,14 @@ String getLatestFirmwareVersion() {
     client.setInsecure();
 
     HTTPClient https;
-    https.begin(client, "https://api.github.com/repos/<owner>/<repo>/releases/latest");
+    https.begin(client, "https://api.github.com/repos/EduardoArine/retro-relay/releases/latest");
     https.addHeader("User-Agent", "ESP32-Agent");
 
     int httpCode = https.GET();
     if (httpCode != 200) return "";
 
     String payload = https.getString();
-    DynamicJsonDocument doc(4096);
+    JsonDocument doc;
     DeserializationError err = deserializeJson(doc, payload);
     if (err) return "";
 

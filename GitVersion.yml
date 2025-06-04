@@ -1,19 +1,1 @@
 mode: Mainline
-
-branches:
-  main:
-    regex: ^main$
-    increment: Inherit
-    tag: ""
-    is-release-branch: true
-    prevent-increment-of-merged-branch-version: true
-    source-branches: [main, developer]
-
-  developer:
-    regex: ^developer$
-    increment: Inherit
-    tag: ""
-    source-branches: [main, developer]
-
-ignore:
-  sha: []

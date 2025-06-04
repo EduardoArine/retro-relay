@@ -1,9 +1,12 @@
 #include <Arduino.h>
 #include <ESPAsyncWebServer.h>
+/* #include <ElegantOTA.h> */
+#include <ESPmDNS.h>
 #include <esp_task_wdt.h>
 
 #include "ReleManager.h"
 #include "WiFiMQTT.h"
+
 
 AsyncWebServer server(80);
 
@@ -79,6 +82,9 @@ void setupWebServer()
       request->send(400, "text/plain", "Faltou o valor");
     } });
 
+  server.on("/ping", HTTP_GET, [](AsyncWebServerRequest *request)
+            { request->send(200, "text/plain", "pong"); });
+
   server.begin();
 }
 
@@ -86,12 +92,22 @@ void setup()
 {
   Serial.begin(115200);
   inicializarReles();
+  carregarEstadoSalvo();
   conectarWiFi();
+
+  if (!MDNS.begin("retrorelay")) {
+      Serial.println("⚠️ Erro ao iniciar mDNS");
+  } else {
+      MDNS.addService("http", "tcp", 80);
+      Serial.println("🌐 mDNS iniciado: http://retrorelay.local");
+  }
 
   esp_task_wdt_init(5, true);
   esp_task_wdt_add(NULL);
 
   setupWebServer();
+  /* ElegantOTA.begin(&server);  // ← Adiciona OTA */
+  Serial.println("🛠️ OTA pronto em /update");
 }
 
 void loop()

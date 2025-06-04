@@ -12,6 +12,8 @@ void aplicarEstado();
 void alternarRele(int canal);
 void setModo(ModoRele modo);
 ModoRele getModoAtual();
-void carregarEstadoSalvo(); // futuro
+void salvarEstado();            // novo
+void carregarEstadoSalvo();     // novo
+
 
 extern uint16_t estadoAtual;

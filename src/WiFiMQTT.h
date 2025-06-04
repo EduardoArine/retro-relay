@@ -1,17 +1,21 @@
 #pragma once
 #include <WiFi.h>
+#include <ESPAsyncWebServer.h>
+#include <ESPAsyncWiFiManager.h>  // versão compatível
 
-const char *ssid = "Arppen Mobile";
-const char *password = "Arppen!@#4";
+extern AsyncWebServer server;  // Apenas declara que será usada de fora
 
-void conectarWiFi()
-{
-    WiFi.begin(ssid, password);
-    Serial.println("Conectando ao Wi-Fi...");
-    while (WiFi.status() != WL_CONNECTED)
-    {
-        delay(500);
-        Serial.print(".");
-    }
-    Serial.printf("\nConectado: IP = %s\n", WiFi.localIP().toString().c_str());
+void conectarWiFi() {
+  DNSServer dns;
+  AsyncWiFiManager wm(&server, &dns);
+
+  wm.setConfigPortalTimeout(180);
+  bool res = wm.autoConnect("RetroRelay-Setup", "admin");
+
+  if (!res) {
+    Serial.println("⚠️ Falha ao conectar ao WiFi");
+    ESP.restart();
+  }
+
+  Serial.printf("✅ Conectado à rede %s, IP: %s\n", WiFi.SSID().c_str(), WiFi.localIP().toString().c_str());
 }

@@ -23,17 +23,20 @@ jobs:
       - name: Instalar GitVersion
         uses: gittools/actions/gitversion/setup@v1
         with:
-          versionSpec: '5.x'
+          versionSpec: "5.x"
 
       - name: Executar GitVersion
         id: gitversion
         uses: gittools/actions/gitversion/execute@v1
 
-      - name: Substituir token de versão no código
+      - name: Substituir token de versão no FirmwareController
         run: |
           VERSION=${{ steps.gitversion.outputs.semVer }}
           echo "🔁 Substituindo versão para $VERSION"
-          sed -i "s|#{Deploy_Version}#|$VERSION|" src/main.cpp
+          sed -i "s|#{Deploy_Version}#|$VERSION|" src/FirmwareController.h
+
+      - name: Verificar versão inserida no código
+        run: grep firmwareVersion src/FirmwareController.h
 
       - name: Compilar firmware
         run: pio run

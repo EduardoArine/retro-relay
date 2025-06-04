@@ -1,9 +1,9 @@
 #include <Arduino.h>
 #include <ESPAsyncWebServer.h>
-/* #include <ElegantOTA.h> */
 #include <ESPmDNS.h>
 #include <esp_task_wdt.h>
 
+#include "FirmwareController.h"
 #include "ReleManager.h"
 #include "WiFiMQTT.h"
 
@@ -85,6 +85,11 @@ void setupWebServer()
   server.on("/ping", HTTP_GET, [](AsyncWebServerRequest *request)
             { request->send(200, "text/plain", "pong"); });
 
+  server.on("/check-ota", HTTP_GET, [](AsyncWebServerRequest *request){
+    forceCheck = true;
+    request->send(200, "text/plain", "Forçando verificação OTA...");
+  });
+
   server.begin();
 }
 
@@ -106,12 +111,11 @@ void setup()
   esp_task_wdt_add(NULL);
 
   setupWebServer();
-  /* ElegantOTA.begin(&server);  // ← Adiciona OTA */
-  Serial.println("🛠️ OTA pronto em /update");
 }
 
 void loop()
 {
   esp_task_wdt_reset();
+  loopOTA();
   delay(100);
 }

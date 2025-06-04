@@ -9,7 +9,7 @@ void conectarWiFi() {
   DNSServer dns;
   AsyncWiFiManager wm(&server, &dns);
 
-  wm.setConfigPortalTimeout(180);
+  wm.setConfigPortalTimeout(300);
   bool res = wm.autoConnect("RetroRelay-Setup", "admin");
 
   if (!res) {

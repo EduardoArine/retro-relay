@@ -15,6 +15,10 @@ bool forceCheck = false;
 unsigned long lastCheckMillis = 0;
 const unsigned long intervalMillis = 30UL * 60UL * 1000UL;
 
+void checkAndUpdateFirmware();
+void loopOTA();
+String getLatestFirmwareVersion();
+
 void loopOTA() {
     unsigned long now = millis();
 
@@ -52,12 +56,12 @@ String getLatestFirmwareVersion() {
 void checkAndUpdateFirmware() {
     String remoteVersion = getLatestFirmwareVersion();
     if (remoteVersion == "" || remoteVersion == firmwareVersion) {
-        Serial.println("ℹ️ Firmware já está atualizado.");
+        Serial.println("Firmware já está atualizado.");
         return;
     }
 
-    Serial.println("🆕 Nova versão detectada: " + remoteVersion);
-    Serial.println("⬇️ Iniciando OTA a partir de: " + firmwareUrl);
+    Serial.println("Nova versão detectada: " + remoteVersion);
+    Serial.println("Iniciando OTA a partir de: " + firmwareUrl);
 
     WiFiClientSecure client;
     client.setInsecure();

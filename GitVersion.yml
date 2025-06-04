@@ -4,9 +4,10 @@ branches:
   main:
     regex: ^main$
     tag: ""
-    increment: Patch
-    prevent-increment-of-merged-branch-version: true
+    increment: Major
     is-release-branch: true
+    prevent-increment-of-merged-branch-version: true
+    source-branches: ["developer"]
 
   developer:
     regex: ^developer$

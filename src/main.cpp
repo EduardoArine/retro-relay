@@ -95,6 +95,9 @@ void setupWebServer()
 void setup()
 {
   Serial.begin(115200);
+
+  verifyFirmware();
+
   inicializarReles();
   carregarEstadoSalvo();
   conectarWiFi();

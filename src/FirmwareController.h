@@ -4,6 +4,7 @@
 #include <HTTPClient.h>
 #include <HTTPUpdate.h>
 #include <ArduinoJson.h>
+#include <esp_ota_ops.h>
 
 extern String firmwareVersion;
 
@@ -18,6 +19,50 @@ const unsigned long intervalMillis = 30UL * 60UL * 1000UL;
 void checkAndUpdateFirmware();
 void loopOTA();
 String getLatestFirmwareVersion();
+
+extern "C" bool verifyRollbackLater(){
+    return true;
+}
+
+void verifyFirmware()
+{
+    /* Captura o ponteiro da partição em execução */
+    const esp_partition_t *running = esp_ota_get_running_partition();
+    esp_ota_img_states_t ota_state;
+
+    /* Verifica se a partição possui bloco 'otadata' */
+    if (esp_ota_get_state_partition(running, &ota_state) == ESP_OK) 
+    {
+        const char* otaState = ota_state == ESP_OTA_IMG_NEW ? "ESP_OTA_IMG_NEW"
+            : ota_state == ESP_OTA_IMG_PENDING_VERIFY ? "ESP_OTA_IMG_PENDING_VERIFY"
+            : ota_state == ESP_OTA_IMG_VALID ? "ESP_OTA_IMG_VALID"
+            : ota_state == ESP_OTA_IMG_INVALID ? "ESP_OTA_IMG_INVALID"
+            : ota_state == ESP_OTA_IMG_ABORTED ? "ESP_OTA_IMG_ABORTED"
+            : "ESP_OTA_IMG_UNDEFINED";
+
+        Serial.println("Estado do Firmware: " + String(otaState));
+
+        /* Verifica se a imagem do OTA está pendente de verificação */
+        if (ota_state == ESP_OTA_IMG_PENDING_VERIFY) 
+        {
+            /* Marca a imagem como válida e tenta cancelar o rollback */
+            if (esp_ota_mark_app_valid_cancel_rollback() == ESP_OK) 
+            {
+                Serial.println("Firmware válido, rollback cancelado com sucesso!");
+            } 
+            else 
+            {
+                Serial.println("Firmware inválido, realizando rollback!");
+                /* Marca a imagem como inválida e reinicia o device (rollback) */
+                esp_ota_mark_app_invalid_rollback_and_reboot();
+            }
+        }
+    }
+    else
+    {
+        Serial.println("Partição OTA não possui registro de dados!");
+    }
+}
 
 void loopOTA() {
     unsigned long now = millis();
@@ -35,7 +80,6 @@ void loopOTA() {
         esp_task_wdt_add(NULL);
     }
 }
-
 
 String getLatestFirmwareVersion() {
     WiFiClientSecure client;

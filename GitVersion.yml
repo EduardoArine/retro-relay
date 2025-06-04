@@ -1,20 +1,19 @@
 mode: Mainline
-next-version: 1.0.0
 
 branches:
   main:
     regex: ^main$
+    increment: Inherit
     tag: ""
-    increment: Major
     is-release-branch: true
     prevent-increment-of-merged-branch-version: true
-    source-branches: ["developer"]
+    source-branches: [main, developer]
 
   developer:
     regex: ^developer$
-    tag: dev
-    increment: Minor
-    source-branches: ["main"]
+    increment: Inherit
+    tag: ""
+    source-branches: [main, developer]
 
 ignore:
   sha: []

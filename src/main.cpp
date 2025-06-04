@@ -7,7 +7,6 @@
 #include "ReleManager.h"
 #include "WiFiMQTT.h"
 
-
 AsyncWebServer server(80);
 
 const char *html = R"rawliteral(
@@ -86,7 +85,7 @@ void setupWebServer()
             { request->send(200, "text/plain", "pong"); });
 
   server.on("/check-ota", HTTP_GET, [](AsyncWebServerRequest *request){
-    forceCheck = true;
+    firmwareForceCheck = true;
     request->send(200, "text/plain", "Forçando verificação OTA...");
   });
 
@@ -99,6 +98,8 @@ void setup()
   inicializarReles();
   carregarEstadoSalvo();
   conectarWiFi();
+
+  firmwareForceCheck = true;
 
   if (!MDNS.begin("retrorelay")) {
       Serial.println("⚠️ Erro ao iniciar mDNS");

@@ -11,7 +11,7 @@ String firmwareVersion = "#{Deploy_Version}#";
 String latestVersion = "";
 String firmwareUrl = "";
 
-bool forceCheck = false;
+bool firmwareForceCheck = false;
 unsigned long lastCheckMillis = 0;
 const unsigned long intervalMillis = 30UL * 60UL * 1000UL;
 
@@ -22,12 +22,17 @@ String getLatestFirmwareVersion();
 void loopOTA() {
     unsigned long now = millis();
 
-    if (forceCheck || (now - lastCheckMillis >= intervalMillis)) {
-        forceCheck = false;
+    if (firmwareForceCheck || (now - lastCheckMillis >= intervalMillis)) {
+        firmwareForceCheck = false;
         lastCheckMillis = now;
 
         Serial.println("🚀 Executando verificação OTA");
+
+        esp_task_wdt_delete(NULL);
+
         checkAndUpdateFirmware();
+
+        esp_task_wdt_add(NULL);
     }
 }
 
@@ -66,7 +71,13 @@ void checkAndUpdateFirmware() {
     WiFiClientSecure client;
     client.setInsecure();
 
-    t_httpUpdate_return result = httpUpdate.update(client, firmwareUrl);
+    HTTPClient http;
+    http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+    http.begin(client, firmwareUrl);
+
+    httpUpdate.rebootOnUpdate(false);
+    httpUpdate.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+    t_httpUpdate_return result = httpUpdate.update(http, firmwareVersion);
 
     switch (result) {
         case HTTP_UPDATE_FAILED:
@@ -77,6 +88,7 @@ void checkAndUpdateFirmware() {
             break;
         case HTTP_UPDATE_OK:
             Serial.println("Atualização concluída com sucesso. Reiniciando...");
+            ESP.restart();
             break;
     }
 }

@@ -3,7 +3,7 @@ mode: ContinuousDeployment
 branches:
   main:
     regex: ^main$
-    tag: ''
+    tag: ""
     increment: Patch
     prevent-increment-of-merged-branch-version: true
     is-release-branch: true
@@ -12,6 +12,7 @@ branches:
     regex: ^developer$
     tag: dev
     increment: Minor
+    source-branches: ["main"]
 
 ignore:
   sha: []

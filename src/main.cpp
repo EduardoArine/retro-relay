@@ -7,9 +7,6 @@
 #include "ReleManager.h"
 #include "WiFiMQTT.h"
 
-// Test Versioning
-
-
 AsyncWebServer server(80);
 
 const char *html = R"rawliteral(

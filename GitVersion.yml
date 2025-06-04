@@ -3,17 +3,17 @@ mode: Mainline
 branches:
   main:
     regex: ^main$
+    increment: Inherit
     tag: ""
-    increment: Major
     is-release-branch: true
     prevent-increment-of-merged-branch-version: true
-    source-branches: ["developer"]
+    source-branches: ["*"]
 
   developer:
     regex: ^developer$
-    tag: dev
-    increment: Minor
-    source-branches: ["main"]
+    increment: Inherit
+    tag: ""
+    source-branches: ["*"]
 
 ignore:
   sha: []

@@ -15,6 +15,10 @@ bool forceCheck = false;
 unsigned long lastCheckMillis = 0;
 const unsigned long intervalMillis = 30UL * 60UL * 1000UL;
 
+void checkAndUpdateFirmware();
+void loopOTA();
+String getLatestFirmwareVersion();
+
 void loopOTA() {
     unsigned long now = millis();
 
@@ -33,14 +37,14 @@ String getLatestFirmwareVersion() {
     client.setInsecure();
 
     HTTPClient https;
-    https.begin(client, "https://api.github.com/repos/<owner>/<repo>/releases/latest");
+    https.begin(client, "https://api.github.com/repos/EduardoArine/retro-relay/releases/latest");
     https.addHeader("User-Agent", "ESP32-Agent");
 
     int httpCode = https.GET();
     if (httpCode != 200) return "";
 
     String payload = https.getString();
-    DynamicJsonDocument doc(4096);
+    JsonDocument doc;
     DeserializationError err = deserializeJson(doc, payload);
     if (err) return "";
 
@@ -52,12 +56,12 @@ String getLatestFirmwareVersion() {
 void checkAndUpdateFirmware() {
     String remoteVersion = getLatestFirmwareVersion();
     if (remoteVersion == "" || remoteVersion == firmwareVersion) {
-        Serial.println("ℹ️ Firmware já está atualizado.");
+        Serial.println("Firmware já está atualizado.");
         return;
     }
 
-    Serial.println("🆕 Nova versão detectada: " + remoteVersion);
-    Serial.println("⬇️ Iniciando OTA a partir de: " + firmwareUrl);
+    Serial.println("Nova versão detectada: " + remoteVersion);
+    Serial.println("Iniciando OTA a partir de: " + firmwareUrl);
 
     WiFiClientSecure client;
     client.setInsecure();

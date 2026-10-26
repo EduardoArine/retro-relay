@@ -21,7 +21,7 @@ void setupWebServer()
       return;
     }
     // Servida direto da flash, já comprimida
-    AsyncWebServerResponse *response = request->beginResponse_P(200, "text/html", WEB_INDEX_GZ, WEB_INDEX_GZ_LEN);
+    AsyncWebServerResponse *response = request->beginResponse(200, "text/html", WEB_INDEX_GZ, WEB_INDEX_GZ_LEN);
     response->addHeader("Content-Encoding", "gzip");
     response->addHeader("Cache-Control", "no-cache");
     response->addHeader("ETag", WEB_INDEX_ETAG);
@@ -74,12 +74,19 @@ void setupWebServer()
       [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
       {
         if (index == 0) {
-          if (total > CONSOLES_MAX_BYTES)
+          // total = 0 em corpo chunked (sem Content-Length): recusa em vez de alocar errado
+          if (total == 0 || total > CONSOLES_MAX_BYTES)
             return;
           request->_tempObject = malloc(total + 1);
         }
         if (!request->_tempObject)
           return;
+        if (index + len > total) {
+          // Mais dados que o anunciado: descarta tudo para não escrever fora do buffer
+          free(request->_tempObject);
+          request->_tempObject = nullptr;
+          return;
+        }
         memcpy((uint8_t *)request->_tempObject + index, data, len);
         if (index + len == total)
           ((char *)request->_tempObject)[total] = '\0';

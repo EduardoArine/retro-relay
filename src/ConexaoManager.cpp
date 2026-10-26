@@ -3,8 +3,7 @@
 #include <WiFi.h>
 #include <esp_system.h>
 
-#define RECONECTAR_A_CADA_MS (30UL * 1000UL)    // Sem WiFi: força reconexão a cada 30 s
-#define REINICIAR_APOS_MS (5UL * 60UL * 1000UL) // Sem WiFi por 5 min: reinicia
+#include "logica/conexao.h"
 #define MOTIVO_VALIDO 0x52524C59                 // Marca de que motivoReinicio foi gravado
 
 // Sobrevive a reinícios por software (não a falta de energia)
@@ -54,17 +53,19 @@ void monitorarWiFi()
         return;
     }
 
-    // Reiniciar desliga os relés por alguns segundos (o pino de enable do 74HC595
-    // fica em nível alto durante o reset): com console ligado, só tenta reconectar
-    if (agora - desconectadoDesde >= REINICIAR_APOS_MS && estadoAtual == 0)
-        reiniciar("wifi_sem_conexao");
-
-    if (agora - ultimaTentativa >= RECONECTAR_A_CADA_MS)
+    switch (proximaAcaoWiFi(decorrido(agora, desconectadoDesde), decorrido(agora, ultimaTentativa), estadoAtual))
     {
+    case AcaoWiFi::REINICIAR:
+        reiniciar("wifi_sem_conexao");
+        break;
+    case AcaoWiFi::RECONECTAR:
         Serial.println("🔁 Forçando reconexão do WiFi");
         ultimaTentativa = agora;
         reconexoesForcadas++;
         WiFi.reconnect();
+        break;
+    case AcaoWiFi::NADA:
+        break;
     }
 }
 

@@ -15,7 +15,11 @@ on:
       - ".github/workflows/release.yml"
 
 jobs:
+  testes:
+    uses: ./.github/workflows/testes.yml
+
   release:
+    needs: testes
     runs-on: ubuntu-latest
 
     steps:

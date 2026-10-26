@@ -9,4 +9,5 @@ void iniciarIdentidade();                // Chamar no início do setup(), antes 
 const char *idDispositivo();             // "a3f2"
 const char *nomeDispositivo();           // "retrorelay-a3f2" (roteador e mDNS)
 const char *nomePortalConfiguracao();    // "RetroRelay-A3F2" (rede do portal de configuração)
+uint8_t grupoDoAparelho();               // 0-99, fixo: define em que etapa da liberação gradual ele recebe
 void iniciarMdns(const char *versao);    // Chamar depois de conectar ao WiFi

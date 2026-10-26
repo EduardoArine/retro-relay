@@ -4,6 +4,7 @@
 #include <esp_system.h>
 #include <mdns.h>
 
+#include "logica/canais.h"
 #include "logica/identidade.h"
 
 #define APELIDO "retrorelay" // Nome antigo, ainda respondido via mDNS
@@ -11,6 +12,7 @@
 static char id[ID_TAM];
 static char nome[NOME_TAM];
 static char portal[NOME_TAM];
+static uint8_t grupo = 0;
 static bool mdnsAtivo = false;
 
 // O apelido é um "hostname delegado" no mDNS: precisa ser recadastrado com o IP
@@ -38,7 +40,8 @@ void iniciarIdentidade()
     idDoMac(mac, id);
     nomeDeRede(id, nome);
     nomeDoPortal(id, portal);
-    Serial.printf("🏷️ Aparelho: %s\n", nome);
+    grupo = grupoLiberacao(mac);
+    Serial.printf("🏷️ Aparelho: %s (grupo de liberação %u)\n", nome, grupo);
 
     WiFi.onEvent([](WiFiEvent_t, WiFiEventInfo_t)
                  { atualizarApelido(); },
@@ -48,6 +51,7 @@ void iniciarIdentidade()
 const char *idDispositivo() { return id; }
 const char *nomeDispositivo() { return nome; }
 const char *nomePortalConfiguracao() { return portal; }
+uint8_t grupoDoAparelho() { return grupo; }
 
 void iniciarMdns(const char *versao)
 {

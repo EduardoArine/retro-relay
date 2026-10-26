@@ -3,6 +3,7 @@
 #include <ESPmDNS.h>
 #include <esp_task_wdt.h>
 
+#include "ConexaoManager.h"
 #include "ConsoleManager.h"
 #include "FirmwareController.h"
 #include "ReleManager.h"
@@ -32,6 +33,15 @@ void setupWebServer()
     doc["estado"] = estadoAtual;
     doc["modo"] = getModoAtual() == ModoRele::MULTI ? "multi" : "unico";
     doc["versao"] = firmwareVersion;
+    String body;
+    serializeJson(doc, body);
+    request->send(200, "application/json", body); });
+
+  server.on("/diag", HTTP_GET, [](AsyncWebServerRequest *request)
+            {
+    JsonDocument doc;
+    doc["versao"] = firmwareVersion;
+    preencherDiagnostico(doc);
     String body;
     serializeJson(doc, body);
     request->send(200, "application/json", body); });
@@ -108,6 +118,7 @@ void setup()
   inicializarReles();
   carregarEstadoSalvo();
   conectarWiFi();
+  iniciarMonitorWiFi();
 
   firmwareForceCheck = true;
 
@@ -131,6 +142,7 @@ void setup()
 void loop()
 {
   esp_task_wdt_reset();
+  monitorarWiFi();
   loopOTA();
   delay(100);
 }

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#171212">
+<title>Retro Relay · Roadmap</title>
+<meta name="description" content="Roadmap do Retro Relay rumo a um produto vendável.">
+<!--
+  Roadmap do Retro Relay, publicado no GitHub Pages (pasta docs/).
+  Os itens ficam em roadmap.json: para atualizar um status, edite só o JSON.
+  status: "feito" | "andamento" | "a_fazer"
+-->
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #171212;
+  --surface: #211D24;
+  --surface-high: #2B2930;
+  --primary: #DCB8FF;
+  --primary-dim: rgba(220, 184, 255, .14);
+  --on-surface: #E7E0E8;
+  --on-surface-var: #CDC3CE;
+  --muted: #968E98;
+  --outline: #4B454D;
+  --feito: #7DD88A;
+  --feito-bg: rgba(125, 216, 138, .14);
+  --andamento: #F2C46B;
+  --andamento-bg: rgba(242, 196, 107, .14);
+  --a-fazer: #968E98;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--on-surface);
+  font: 15px/1.5 Roboto, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.pagina { max-width: 860px; margin: 0 auto; padding: 40px 16px 64px; }
+
+header .marca { color: var(--primary); font-weight: 500; letter-spacing: .4px; font-size: 13px; text-transform: uppercase; }
+header h1 { font-size: 32px; font-weight: 400; margin: 6px 0 10px; line-height: 1.2; }
+header p { color: var(--on-surface-var); margin: 0; max-width: 640px; }
+header .atualizado { color: var(--muted); font-size: 13px; margin-top: 12px; }
+
+.resumo {
+  margin: 28px 0 8px;
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--surface);
+}
+.resumo .numeros { display: flex; flex-wrap: wrap; gap: 8px 28px; align-items: baseline; }
+.resumo .pct { font-size: 40px; line-height: 1; color: var(--primary); font-variant-numeric: tabular-nums; }
+.resumo .legenda { color: var(--on-surface-var); }
+.barra { height: 8px; border-radius: 4px; background: var(--surface-high); overflow: hidden; display: flex; margin-top: 16px; }
+.barra span { display: block; height: 100%; }
+.barra .b-feito { background: var(--feito); }
+.barra .b-andamento { background: var(--andamento); }
+.contagens { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 12px; font-size: 13px; color: var(--on-surface-var); }
+.contagens i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+
+.filtros { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 8px; }
+.filtros button {
+  font: inherit; font-size: 14px;
+  height: 32px; padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid var(--outline);
+  background: transparent; color: var(--on-surface-var);
+  cursor: pointer;
+}
+.filtros button[aria-pressed="true"] { background: var(--primary-dim); border-color: transparent; color: var(--primary); }
+
+.fase { margin-top: 32px; }
+.fase-cab { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.fase-cab .num { color: var(--primary); font-variant-numeric: tabular-nums; font-size: 14px; font-weight: 500; }
+.fase-cab h2 { font-size: 20px; font-weight: 500; margin: 0; flex: 1; min-width: 200px; }
+.fase-cab .prog { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.fase > p { color: var(--on-surface-var); margin: 4px 0 12px; }
+.fase .barra { height: 4px; margin: 0 0 12px; }
+
+.itens { list-style: none; margin: 0; padding: 0; border-radius: 12px; overflow: hidden; background: var(--surface); }
+.item { display: flex; gap: 14px; padding: 14px 16px; border-top: 1px solid var(--outline); }
+.item:first-child { border-top: 0; }
+.item .marcador { flex: none; width: 20px; height: 20px; margin-top: 2px; }
+.item .texto { flex: 1; min-width: 0; }
+.item .titulo { font-weight: 500; }
+.item.feito .titulo { color: var(--on-surface-var); }
+.item .desc { color: var(--on-surface-var); font-size: 14px; margin-top: 2px; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.tag { font-size: 12px; line-height: 20px; padding: 0 8px; border-radius: 6px; background: var(--surface-high); color: var(--on-surface-var); white-space: nowrap; }
+.tag.feito { background: var(--feito-bg); color: var(--feito); }
+.tag.andamento { background: var(--andamento-bg); color: var(--andamento); }
+.tag.voce { background: var(--primary-dim); color: var(--primary); }
+.vazio { color: var(--muted); padding: 16px; }
+
+footer { margin-top: 48px; color: var(--muted); font-size: 13px; }
+footer a { color: var(--primary); }
+
+@media (max-width: 480px) {
+  .pagina { padding-top: 28px; }
+  header h1 { font-size: 26px; }
+  .resumo .pct { font-size: 32px; }
+}
+</style>
+</head>
+<body>
+<div class="pagina">
+  <header>
+    <div class="marca">Retro Relay</div>
+    <h1>Roadmap até o produto</h1>
+    <p id="objetivo"></p>
+    <div class="atualizado" id="atualizado"></div>
+  </header>
+
+  <section class="resumo" aria-label="Progresso geral">
+    <div class="numeros">
+      <div class="pct" id="pct">–</div>
+      <div class="legenda" id="legenda">Carregando…</div>
+    </div>
+    <div class="barra" id="barra-geral"></div>
+    <div class="contagens" id="contagens"></div>
+  </section>
+
+  <div class="filtros" role="group" aria-label="Filtrar itens" id="filtros"></div>
+
+  <main id="fases"></main>
+
+  <footer>
+    Itens em <a href="https://github.com/EduardoArine/retro-relay/blob/main/docs/roadmap.json">docs/roadmap.json</a>
+    · Código em <a href="https://github.com/EduardoArine/retro-relay">EduardoArine/retro-relay</a>
+  </footer>
+</div>
+
+<script>
+'use strict';
+
+const STATUS = {
+  feito: { rotulo: 'Feito', cor: 'var(--feito)' },
+  andamento: { rotulo: 'Em andamento', cor: 'var(--andamento)' },
+  a_fazer: { rotulo: 'A fazer', cor: 'var(--a-fazer)' },
+};
+const FILTROS = [
+  { id: 'todos', rotulo: 'Todos', teste: () => true },
+  { id: 'pendentes', rotulo: 'Pendentes', teste: i => i.status !== 'feito' },
+  { id: 'feito', rotulo: 'Feitos', teste: i => i.status === 'feito' },
+  { id: 'voce', rotulo: 'Com Eduardo', teste: i => i.responsavel === 'Eduardo' && i.status !== 'feito' },
+];
+
+let dados = null;
+let filtro = 'todos';
+try { filtro = localStorage.getItem('roadmap-filtro') || 'todos'; } catch {}
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
+function marcador(status) {
+  if (status === 'feito') {
+    return `<svg class="marcador" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="var(--feito)"/><path d="M6 10.2l2.6 2.6L14 7.4" fill="none" stroke="#14301A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  }
+  if (status === 'andamento') {
+    return `<svg class="marcador" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25" fill="none" stroke="var(--andamento)" stroke-width="1.5"/><path d="M10 1.75a8.25 8.25 0 0 1 0 16.5z" fill="var(--andamento)"/></svg>`;
+  }
+  return `<svg class="marcador" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25" fill="none" stroke="var(--a-fazer)" stroke-width="1.5"/></svg>`;
+}
+
+function contar(itens) {
+  const c = { feito: 0, andamento: 0, a_fazer: 0, total: itens.length };
+  for (const i of itens) c[i.status]++;
+  return c;
+}
+
+function barra(c) {
+  const pct = n => c.total ? (n / c.total * 100) : 0;
+  return `<span class="b-feito" style="width:${pct(c.feito)}%"></span><span class="b-andamento" style="width:${pct(c.andamento)}%"></span>`;
+}
+
+function dataBr(iso) {
+  const [a, m, d] = iso.split('-');
+  return `${d}/${m}/${a}`;
+}
+
+function render() {
+  const todos = dados.fases.flatMap(f => f.itens);
+  const c = contar(todos);
+
+  document.getElementById('objetivo').textContent = dados.objetivo;
+  document.getElementById('atualizado').textContent = 'Atualizado em ' + dataBr(dados.atualizado);
+  document.getElementById('pct').textContent = Math.round(c.feito / c.total * 100) + '%';
+  document.getElementById('legenda').textContent = `${c.feito} de ${c.total} itens concluídos`;
+  document.getElementById('barra-geral').innerHTML = barra(c);
+  document.getElementById('contagens').innerHTML = Object.entries(STATUS)
+    .map(([k, s]) => `<span><i style="background:${s.cor}"></i>${s.rotulo}: ${c[k]}</span>`).join('');
+
+  document.getElementById('filtros').innerHTML = FILTROS
+    .map(f => `<button type="button" data-filtro="${f.id}" aria-pressed="${f.id === filtro}">${f.rotulo}</button>`).join('');
+
+  const teste = (FILTROS.find(f => f.id === filtro) || FILTROS[0]).teste;
+  document.getElementById('fases').innerHTML = dados.fases.map((fase, n) => {
+    const cf = contar(fase.itens);
+    const visiveis = fase.itens.filter(teste);
+    const lista = visiveis.length
+      ? visiveis.map(i => `
+        <li class="item ${i.status}">
+          ${marcador(i.status)}
+          <div class="texto">
+            <div class="titulo">${esc(i.titulo)}</div>
+            <div class="desc">${esc(i.descricao)}</div>
+            <div class="tags">
+              <span class="tag ${i.status}">${STATUS[i.status].rotulo}</span>
+              ${i.versao ? `<span class="tag">${i.versao === 'app' ? 'App' : 'Firmware ' + esc(i.versao)}</span>` : ''}
+              ${i.responsavel ? `<span class="tag voce">Com ${esc(i.responsavel)}</span>` : ''}
+              ${i.nota ? `<span class="tag">${esc(i.nota)}</span>` : ''}
+            </div>
+          </div>
+        </li>`).join('')
+      : '<li class="vazio">Nenhum item neste filtro.</li>';
+    return `
+      <section class="fase">
+        <div class="fase-cab">
+          <span class="num">Fase ${n + 1}</span>
+          <h2>${esc(fase.titulo)}</h2>
+          <span class="prog">${cf.feito}/${cf.total}</span>
+        </div>
+        <p>${esc(fase.descricao)}</p>
+        <div class="barra">${barra(cf)}</div>
+        <ul class="itens">${lista}</ul>
+      </section>`;
+  }).join('');
+}
+
+document.getElementById('filtros').addEventListener('click', e => {
+  const b = e.target.closest('[data-filtro]');
+  if (!b) return;
+  filtro = b.dataset.filtro;
+  try { localStorage.setItem('roadmap-filtro', filtro); } catch {}
+  render();
+});
+
+fetch('roadmap.json', { cache: 'no-cache' })
+  .then(r => r.json())
+  .then(d => { dados = d; render(); })
+  .catch(() => { document.getElementById('legenda').textContent = 'Não foi possível carregar o roadmap.'; });
+</script>
+</body>
+</html>

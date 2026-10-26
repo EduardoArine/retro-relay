@@ -20,10 +20,14 @@ void checkAndUpdateFirmware();
 void loopOTA();
 String getLatestFirmwareVersion();
 
+// Desliga a validação automática do core Arduino: quem valida é verifyFirmware()
 extern "C" bool verifyRollbackLater(){
     return true;
 }
 
+// Chamar no fim do setup(), depois que o dispositivo estiver acessível.
+// Até lá, um firmware novo fica PENDING_VERIFY e qualquer reinício
+// (crash, watchdog ou falha de WiFi) faz o bootloader voltar à versão anterior.
 void verifyFirmware()
 {
     /* Captura o ponteiro da partição em execução */

@@ -9,6 +9,9 @@ void conectarWiFi() {
   DNSServer dns;
   AsyncWiFiManager wm(&server, &dns);
 
+  // Nome do dispositivo na lista do roteador (padrão seria "esp32-XXXXXX")
+  WiFi.setHostname("retrorelay");
+
   wm.setConfigPortalTimeout(300);
   bool res = wm.autoConnect("RetroRelay-Setup", "admin");
 

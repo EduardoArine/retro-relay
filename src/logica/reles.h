@@ -42,3 +42,11 @@ inline uint16_t estadoRestaurado(uint32_t salvo, ModoRele modo)
     uint16_t estado = (uint16_t)salvo;
     return modo == ModoRele::UNICO ? manterPrimeiroAtivo(estado) : estado;
 }
+
+// Estado dos relés ao ligar a placa. Se a energia acabou e voltou (ou houve queda
+// de tensão), tudo começa desligado: consoles religando sozinhos assustam.
+// Nos outros reinícios (firmware, travamento, watchdog) o estado é restaurado.
+inline uint16_t estadoAoLigar(uint32_t salvo, ModoRele modo, bool energiaVoltou)
+{
+    return energiaVoltou ? 0 : estadoRestaurado(salvo, modo);
+}

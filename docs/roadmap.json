@@ -23,7 +23,7 @@
         { "titulo": "Diagnóstico na tela de Config", "descricao": "Tempo ligado, motivo do último reinício, quedas de Wi-Fi, sinal e memória.", "status": "feito", "versao": "1.5.0" },
         { "titulo": "App reencontra o aparelho quando o IP muda", "descricao": "Busca automática na rede quando o IP salvo para de responder.", "status": "feito", "versao": "app", "nota": "Falta instalar no celular" },
         { "titulo": "Teste de resistência", "descricao": "2 a 3 placas ligadas por semanas, com roteador reiniciando, quedas de energia e Wi-Fi fraco, acompanhando o Diagnóstico.", "status": "a_fazer", "responsavel": "Eduardo" },
-        { "titulo": "Trocar bibliotecas de rede abandonadas", "descricao": "Servidor web e TCP migrados para as versões mantidas (ESP32Async) e todas as bibliotecas com versão fixa.", "status": "feito", "versao": "1.6.1" }
+        { "titulo": "Trocar bibliotecas de rede abandonadas", "descricao": "Servidor web e TCP migrados para as versões mantidas (ESP32Async) e todas as bibliotecas com versão fixa.", "status": "feito", "versao": "1.6.2" }
       ]
     },
     {
@@ -38,7 +38,7 @@
         { "titulo": "Canais beta e estável", "descricao": "Seus aparelhos e voluntários recebem antes; clientes só depois.", "status": "a_fazer" },
         { "titulo": "Liberação gradual", "descricao": "10%, 50%, 100% dos aparelhos, com possibilidade de pausar.", "status": "a_fazer" },
         { "titulo": "Firmware assinado", "descricao": "O aparelho só instala versões assinadas pelo projeto.", "status": "a_fazer" },
-        { "titulo": "Testes automáticos no CI", "descricao": "28 testes da lógica do firmware (relés, cadastro, OTA, Wi-Fi), certificados e JavaScript rodam a cada push; a release só sai se passarem.", "status": "feito", "versao": "1.6.2" },
+        { "titulo": "Testes automáticos no CI", "descricao": "28 testes da lógica do firmware (relés, cadastro, OTA, Wi-Fi), certificados e JavaScript rodam a cada push; a release só sai se passarem.", "status": "feito", "versao": "1.6.3" },
         { "titulo": "Placa de teste", "descricao": "Uma placa reserva que recebe cada versão antes dos aparelhos em uso.", "status": "a_fazer", "responsavel": "Eduardo" }
       ]
     },

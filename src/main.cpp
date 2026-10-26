@@ -1,11 +1,11 @@
 #include <Arduino.h>
 #include <ESPAsyncWebServer.h>
-#include <ESPmDNS.h>
 #include <esp_task_wdt.h>
 
 #include "ConexaoManager.h"
 #include "ConsoleManager.h"
 #include "FirmwareController.h"
+#include "IdentidadeManager.h"
 #include "ReleManager.h"
 #include "WiFiMQTT.h"
 #include "web_index.h" // Gerado por scripts/embed_web.py a partir de web/index.html
@@ -32,6 +32,7 @@ void setupWebServer()
     JsonDocument doc;
     doc["estado"] = estadoAtual;
     doc["modo"] = getModoAtual() == ModoRele::MULTI ? "multi" : "unico";
+    doc["nome"] = nomeDispositivo();
     doc["versao"] = firmwareVersion;
     // Versão nova esperando os consoles desligarem para ser instalada ("" = nenhuma)
     doc["atualizacao_pendente"] = reinicioPendente ? latestVersion : versaoPendente;
@@ -43,6 +44,7 @@ void setupWebServer()
             {
     JsonDocument doc;
     doc["versao"] = firmwareVersion;
+    doc["nome"] = nomeDispositivo();
     preencherDiagnostico(doc);
     JsonObject ota = doc["ota"].to<JsonObject>();
     ota["certificado"] = statusCertificadoOta;
@@ -129,6 +131,7 @@ void setup()
 {
   Serial.begin(115200);
 
+  iniciarIdentidade();
   inicializarReles();
   carregarEstadoSalvo();
   conectarWiFi();
@@ -136,12 +139,7 @@ void setup()
 
   firmwareForceCheck = true;
 
-  if (!MDNS.begin("retrorelay")) {
-      Serial.println("⚠️ Erro ao iniciar mDNS");
-  } else {
-      MDNS.addService("http", "tcp", 80);
-      Serial.println("🌐 mDNS iniciado: http://retrorelay.local");
-  }
+  iniciarMdns(firmwareVersion.c_str());
 
   esp_task_wdt_init(5, true);
   esp_task_wdt_add(NULL);

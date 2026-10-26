@@ -47,7 +47,8 @@
       "descricao": "Tirar da caixa e usar, sem conhecimento técnico.",
       "itens": [
         { "titulo": "Configurar o Wi-Fi pelo app", "descricao": "Via Bluetooth ou dentro do app, sem trocar de rede manualmente.", "status": "a_fazer" },
-        { "titulo": "Nome e senha únicos por aparelho", "descricao": "Ex.: RetroRelay-A3F2, com QR code na etiqueta.", "status": "a_fazer" },
+        { "titulo": "Nome único por aparelho", "descricao": "retrorelay-a3f2 no roteador e na rede, RetroRelay-A3F2 no portal de configuração; retrorelay.local continua funcionando.", "status": "feito", "versao": "?" },
+        { "titulo": "Senha única na etiqueta", "descricao": "Senha do portal de configuração por aparelho, com QR code na etiqueta.", "status": "a_fazer", "responsavel": "Eduardo" },
         { "titulo": "Botão de reset de fábrica", "descricao": "Apagar o Wi-Fi salvo ao trocar de roteador, sem precisar de cabo.", "status": "a_fazer" },
         { "titulo": "Pareamento entre app e aparelho", "descricao": "Só quem pareou consegue controlar os relés.", "status": "a_fazer" },
         { "titulo": "Vários aparelhos na mesma casa", "descricao": "Nomes únicos na rede e app com lista de aparelhos.", "status": "a_fazer" },

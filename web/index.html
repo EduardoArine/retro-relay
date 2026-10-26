@@ -354,6 +354,7 @@ const S = {
   pendentes: 0,       // toggles em andamento (pausa o polling do estado)
   diag: null,         // resposta do /diag (carregada ao abrir a Config)
   atualizacao: '',    // versão nova esperando os consoles desligarem
+  nome: '',           // nome único do aparelho (retrorelay-a3f2)
 };
 
 const ativo = i => (S.estado & (1 << i)) !== 0;
@@ -396,8 +397,8 @@ async function atualizarEstado() {
     setConectado(true);
     if (S.pendentes) return;
     const atualizacao = d.atualizacao_pendente || '';
-    const mudou = d.estado !== S.estado || d.modo !== S.modo || d.versao !== S.versao || atualizacao !== S.atualizacao;
-    S.estado = d.estado; S.modo = d.modo; S.versao = d.versao; S.atualizacao = atualizacao;
+    const mudou = d.estado !== S.estado || d.modo !== S.modo || d.versao !== S.versao || atualizacao !== S.atualizacao || (d.nome || '') !== S.nome;
+    S.estado = d.estado; S.modo = d.modo; S.versao = d.versao; S.atualizacao = atualizacao; S.nome = d.nome || '';
     if (mudou && rota().tela !== 'canal') render();
   } catch {
     setConectado(false);
@@ -561,7 +562,7 @@ function telaConfig() {
     <div class="linha">
       <div class="textos">
         <div class="titulo">Dispositivo</div>
-        <div class="sub">http://${esc(location.host)}</div>
+        <div class="sub">${S.nome ? esc(S.nome) + ' · ' : ''}http://${esc(location.host)}</div>
       </div>
       <div class="status ${S.conectado ? 'on' : 'off'}">${ico(S.conectado ? 'wifi' : 'wifiOff')}${S.conectado ? 'Conectado' : 'Sem conexão'}</div>
     </div>

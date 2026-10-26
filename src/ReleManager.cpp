@@ -1,5 +1,6 @@
 #include "ReleManager.h"
 #include <Preferences.h>
+#include <esp_system.h>
 
 #define HC595_SI_PIN 14
 #define HC595_SCK_PIN 13
@@ -75,8 +76,14 @@ void carregarEstadoSalvo()
 {
     prefs.begin("retrorelay", true);
     modoAtual = modoSalvo(prefs.getUChar("modo", (uint8_t)ModoRele::UNICO));
-    estadoAtual = estadoRestaurado(prefs.getUInt("estado", 0), modoAtual);
+    uint32_t salvo = prefs.getUInt("estado", 0);
     prefs.end();
 
+    esp_reset_reason_t motivo = esp_reset_reason();
+    bool energiaVoltou = motivo == ESP_RST_POWERON || motivo == ESP_RST_BROWNOUT;
+    estadoAtual = estadoAoLigar(salvo, modoAtual, energiaVoltou);
+
     aplicarEstado();
+    if (estadoAtual != salvo)
+        salvarEstado();
 }

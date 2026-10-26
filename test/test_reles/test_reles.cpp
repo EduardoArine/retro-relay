@@ -55,6 +55,18 @@ void test_estado_restaurado_respeita_o_modo()
     TEST_ASSERT_EQUAL_HEX16(0x0001, estadoRestaurado(0x0003, ModoRele::UNICO));
 }
 
+void test_energia_voltou_desliga_tudo()
+{
+    TEST_ASSERT_EQUAL_HEX16(0, estadoAoLigar(0x0005, ModoRele::MULTI, true));
+    TEST_ASSERT_EQUAL_HEX16(0, estadoAoLigar(0x0004, ModoRele::UNICO, true));
+}
+
+void test_outros_reinicios_restauram_o_estado()
+{
+    TEST_ASSERT_EQUAL_HEX16(0x0005, estadoAoLigar(0x0005, ModoRele::MULTI, false));
+    TEST_ASSERT_EQUAL_HEX16(0x0001, estadoAoLigar(0x0005, ModoRele::UNICO, false));
+}
+
 int main()
 {
     UNITY_BEGIN();
@@ -65,5 +77,7 @@ int main()
     RUN_TEST(test_modo_unico_mantem_o_primeiro_ativo);
     RUN_TEST(test_modo_salvo_corrompido_vira_unico);
     RUN_TEST(test_estado_restaurado_respeita_o_modo);
+    RUN_TEST(test_energia_voltou_desliga_tudo);
+    RUN_TEST(test_outros_reinicios_restauram_o_estado);
     return UNITY_END();
 }

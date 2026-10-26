@@ -52,7 +52,7 @@
         { "titulo": "Botão de reset de fábrica", "descricao": "Apagar o Wi-Fi salvo ao trocar de roteador, sem precisar de cabo.", "status": "a_fazer" },
         { "titulo": "Pareamento entre app e aparelho", "descricao": "Só quem pareou consegue controlar os relés.", "status": "a_fazer" },
         { "titulo": "Vários aparelhos na mesma casa", "descricao": "Nomes únicos na rede e app com lista de aparelhos.", "status": "a_fazer" },
-        { "titulo": "Opção para quando a energia voltar", "descricao": "Escolher entre manter os consoles como estavam ou desligar tudo.", "status": "a_fazer" }
+        { "titulo": "Consoles desligados quando a energia volta", "descricao": "Depois de falta de energia ou queda de tensão, tudo começa desligado; reinícios do firmware restauram o estado.", "status": "feito", "versao": "?" }
       ]
     },
     {

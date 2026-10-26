@@ -37,7 +37,9 @@
         { "titulo": "Release só quando muda o firmware", "descricao": "Alterar documentação não gera mais versão nova nem reinicia aparelhos.", "status": "feito", "versao": "1.6.0" },
         { "titulo": "Canais beta e estável", "descricao": "Seus aparelhos e voluntários recebem antes; clientes só depois.", "status": "a_fazer" },
         { "titulo": "Liberação gradual", "descricao": "10%, 50%, 100% dos aparelhos, com possibilidade de pausar.", "status": "a_fazer" },
-        { "titulo": "Firmware assinado", "descricao": "O aparelho só instala versões assinadas pelo projeto.", "status": "a_fazer" },
+        { "titulo": "Firmware assinado (fase de validação)", "descricao": "O CI assina cada versão (ECDSA P-256) e o aparelho confere antes de reiniciar, registrando o resultado no Diagnóstico.", "status": "feito", "versao": "?" },
+        { "titulo": "Cadastrar a chave de assinatura no GitHub", "descricao": "Secret OTA_CHAVE_PRIVADA com a chave principal; guardar a chave reserva fora do computador.", "status": "a_fazer", "responsavel": "Eduardo" },
+        { "titulo": "Tornar a assinatura obrigatória", "descricao": "Depois de ver \"Válida\" no Diagnóstico, o aparelho passa a descartar versões sem assinatura válida.", "status": "a_fazer" },
         { "titulo": "Testes automáticos no CI", "descricao": "28 testes da lógica do firmware (relés, cadastro, OTA, Wi-Fi), certificados e JavaScript rodam a cada push; a release só sai se passarem.", "status": "feito", "versao": "1.6.3" },
         { "titulo": "Placa de teste", "descricao": "Uma placa reserva que recebe cada versão antes dos aparelhos em uso.", "status": "a_fazer", "responsavel": "Eduardo" }
       ]

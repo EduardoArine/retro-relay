@@ -6,6 +6,7 @@
 #include <ArduinoJson.h>
 #include <esp_ota_ops.h>
 
+#include "AssinaturaOta.h"
 #include "ConexaoManager.h"
 #include "ReleManager.h"
 #include "logica/ota.h"
@@ -31,6 +32,16 @@ extern const uint8_t x509_crt_bundle_start[] asm("_binary_certs_x509_crt_bundle_
 const bool OTA_EXIGIR_CERTIFICADO = false;
 
 String statusCertificadoOta = "nao_testado"; // ok | falhou | nao_testado (exposto no /diag)
+
+// Fase de validação da assinatura do firmware (chaves em certs/*.pub.pem): com
+// false, o resultado só é registrado no /diag e o firmware é instalado mesmo sem
+// assinatura válida. Depois de ver "valida" no dispositivo, mudar para true: aí
+// firmware sem assinatura válida é descartado antes do reinício.
+const bool OTA_EXIGIR_ASSINATURA = false;
+
+String assinaturaUrl = "";  // .bin.sig da release ("" = release sem assinatura)
+size_t firmwareTamanho = 0; // Bytes do .bin, para conferir a assinatura do que foi gravado
+String versaoRecusada = ""; // Versão descartada por assinatura: não baixa de novo
 
 // O reinício desliga os relés por alguns segundos (pino de enable do 74HC595 em
 // nível alto durante o reset), então a atualização espera os consoles desligarem.
@@ -109,14 +120,32 @@ static String buscarUltimaVersao(bool verificarCertificado)
     // Só os campos usados: a resposta inteira inclui as notas da release
     JsonDocument filtro;
     filtro["tag_name"] = true;
+    filtro["assets"][0]["name"] = true; // Em filtro, o item [0] vale para todos os itens da lista
     filtro["assets"][0]["browser_download_url"] = true;
+    filtro["assets"][0]["size"] = true;
 
     JsonDocument doc;
     DeserializationError err = deserializeJson(doc, https.getString(), DeserializationOption::Filter(filtro));
     if (err) return "";
 
+    // Arquivos pelo nome: retrorelay-X.Y.Z.bin e retrorelay-X.Y.Z.bin.sig
+    firmwareUrl = "";
+    assinaturaUrl = "";
+    firmwareTamanho = 0;
+    for (JsonObjectConst arquivo : doc["assets"].as<JsonArrayConst>())
+    {
+        const char *nome = arquivo["name"] | "";
+        if (ehArquivoAssinatura(nome))
+            assinaturaUrl = arquivo["browser_download_url"].as<String>();
+        else if (ehArquivoFirmware(nome) && firmwareUrl == "")
+        {
+            firmwareUrl = arquivo["browser_download_url"].as<String>();
+            firmwareTamanho = arquivo["size"] | 0;
+        }
+    }
+    if (firmwareUrl == "") return "";
+
     latestVersion = doc["tag_name"].as<String>();
-    firmwareUrl = doc["assets"][0]["browser_download_url"].as<String>();
     return latestVersion;
 }
 
@@ -147,7 +176,7 @@ void verificarAtualizacao()
     }
 
     String remoteVersion = getLatestFirmwareVersion();
-    if (!haVersaoNova(remoteVersion.c_str(), firmwareVersion.c_str()))
+    if (!haVersaoNova(remoteVersion.c_str(), firmwareVersion.c_str()) || remoteVersion == versaoRecusada)
     {
         versaoPendente = "";
         Serial.println("Firmware já está atualizado.");
@@ -170,6 +199,28 @@ static t_httpUpdate_return baixarFirmware(bool verificarCertificado)
     httpUpdate.rebootOnUpdate(false);
     httpUpdate.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
     return httpUpdate.update(http, firmwareVersion);
+}
+
+// A assinatura (DER, ~72 bytes) vem do mesmo servidor que o .bin
+static size_t baixarAssinatura(bool verificarCertificado, uint8_t *destino, size_t capacidade)
+{
+    if (assinaturaUrl == "")
+        return 0;
+
+    WiFiClientSecure client;
+    configurarTls(client, verificarCertificado);
+
+    HTTPClient http;
+    http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+    http.begin(client, assinaturaUrl);
+    if (http.GET() != 200)
+        return 0;
+
+    int tamanho = http.getSize();
+    if (tamanho <= 0 || (size_t)tamanho > capacidade)
+        return 0;
+    size_t lido = http.getStreamPtr()->readBytes(destino, tamanho);
+    return lido == (size_t)tamanho ? lido : 0;
 }
 
 void aplicarAtualizacao()
@@ -195,10 +246,27 @@ void aplicarAtualizacao()
         Serial.println("Nenhuma atualização disponível.");
         break;
     case HTTP_UPDATE_OK:
+    {
         Serial.println("Atualização gravada.");
+
+        static uint8_t assinatura[128];
+        size_t tamanhoAssinatura = baixarAssinatura(verificado, assinatura, sizeof(assinatura));
+        ResultadoAssinatura resultado = conferirFirmwareGravado(firmwareTamanho, assinatura, tamanhoAssinatura);
+        registrarAssinatura(resultado, latestVersion);
+        Serial.printf("Assinatura do firmware: %s\n", nomeResultado(resultado));
+
+        if (!aceitarFirmware(resultado, OTA_EXIGIR_ASSINATURA))
+        {
+            descartarFirmwareGravado();
+            versaoRecusada = latestVersion;
+            Serial.println("⛔ Firmware descartado: assinatura não confere");
+            break;
+        }
+
         motivoReinicioOta = verificado ? "ota" : "ota_sem_certificado";
         reinicioPendente = true;
         break;
+    }
     }
 }
 

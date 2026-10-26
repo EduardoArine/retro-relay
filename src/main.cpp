@@ -50,6 +50,8 @@ void setupWebServer()
     JsonObject ota = doc["ota"].to<JsonObject>();
     ota["certificado"] = statusCertificadoOta;
     ota["exige_certificado"] = OTA_EXIGIR_CERTIFICADO;
+    ota["exige_assinatura"] = OTA_EXIGIR_ASSINATURA;
+    preencherAssinatura(ota);
     String body;
     serializeJson(doc, body);
     request->send(200, "application/json", body); });

@@ -9,7 +9,8 @@ on:
 
 jobs:
   testes:
-    runs-on: ubuntu-latest
+    # 24.04 fixo: traz o mbedTLS 2.28, a mesma versão do ESP32 (usada nos testes de assinatura)
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout código
@@ -20,6 +21,9 @@ jobs:
         with:
           path: ~/.platformio
           key: platformio-${{ hashFiles('platformio.ini') }}
+
+      - name: Instalar mbedTLS (testes de assinatura do firmware)
+        run: sudo apt-get update && sudo apt-get install -y libmbedtls-dev
 
       - name: Instalar PlatformIO
         run: |

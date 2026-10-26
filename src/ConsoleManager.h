@@ -8,3 +8,4 @@ const size_t CONSOLES_MAX_BYTES = 6144; // Tamanho máximo aceito no corpo do PO
 
 String carregarConsoles();
 bool salvarConsoles(const char *json, String &erro);
+void apagarConsoles(); // Restaurar padrões de fábrica

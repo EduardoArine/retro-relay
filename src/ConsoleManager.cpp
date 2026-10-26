@@ -13,6 +13,13 @@ String carregarConsoles()
     return json;
 }
 
+void apagarConsoles()
+{
+    consolePrefs.begin("consoles", false);
+    consolePrefs.clear();
+    consolePrefs.end();
+}
+
 bool salvarConsoles(const char *json, String &erro)
 {
     std::string normalizado, motivo;

@@ -1,0 +1,70 @@
+{
+  "atualizado": "2026-10-26",
+  "objetivo": "Transformar o Retro Relay em um produto vendável: fácil de configurar, que não trava na mão do usuário e que pode ser atualizado com segurança.",
+  "fases": [
+    {
+      "titulo": "Base",
+      "descricao": "Interface, sincronização com o app e atualizações remotas confiáveis.",
+      "itens": [
+        { "titulo": "Interface web no estilo do app", "descricao": "Controle completo pelo navegador, servido pelo próprio ESP e atualizado junto com o firmware.", "status": "feito", "versao": "1.4.0" },
+        { "titulo": "Cadastro de consoles salvo no aparelho", "descricao": "Nomes e imagens ficam no ESP e são compartilhados entre app e página web.", "status": "feito", "versao": "1.4.0" },
+        { "titulo": "App sincroniza o cadastro com o ESP", "descricao": "Funciona sem conexão e envia as alterações quando reconecta.", "status": "feito", "versao": "app", "nota": "Falta instalar no celular" },
+        { "titulo": "App mostra o estado real dos relés", "descricao": "Reflete o que foi ligado pela web, pelo widget ou por outro celular.", "status": "feito", "versao": "app", "nota": "Falta instalar no celular" },
+        { "titulo": "Rollback automático de firmware", "descricao": "Se uma versão nova travar ou não conectar, o aparelho volta sozinho para a anterior.", "status": "feito", "versao": "1.4.1" },
+        { "titulo": "Nome \"retrorelay\" na rede", "descricao": "Aparece com esse nome na lista de aparelhos do roteador.", "status": "feito", "versao": "1.4.1" }
+      ]
+    },
+    {
+      "titulo": "Não travar na mão do usuário",
+      "descricao": "Atacar as quedas de conexão e provar que o aparelho fica estável por semanas.",
+      "itens": [
+        { "titulo": "Reconexão automática do Wi-Fi", "descricao": "Força a reconexão a cada 30 s e reinicia após 5 min sem rede (só com consoles desligados).", "status": "feito", "versao": "1.5.0" },
+        { "titulo": "Rádio sem economia de energia", "descricao": "Evita que o aparelho \"suma\" da rede por perder pacotes de descoberta.", "status": "feito", "versao": "1.5.0" },
+        { "titulo": "Diagnóstico na tela de Config", "descricao": "Tempo ligado, motivo do último reinício, quedas de Wi-Fi, sinal e memória.", "status": "feito", "versao": "1.5.0" },
+        { "titulo": "App reencontra o aparelho quando o IP muda", "descricao": "Busca automática na rede quando o IP salvo para de responder.", "status": "feito", "versao": "app", "nota": "Falta instalar no celular" },
+        { "titulo": "Teste de resistência", "descricao": "2 a 3 placas ligadas por semanas, com roteador reiniciando, quedas de energia e Wi-Fi fraco, acompanhando o Diagnóstico.", "status": "a_fazer", "responsavel": "Eduardo" },
+        { "titulo": "Trocar bibliotecas de rede abandonadas", "descricao": "Migrar servidor web e TCP para as versões mantidas (ESP32Async) e fixar a versão do WiFiManager.", "status": "a_fazer" }
+      ]
+    },
+    {
+      "titulo": "Atualizações seguras para clientes",
+      "descricao": "Uma versão com problema nunca deve chegar a todos os aparelhos ao mesmo tempo.",
+      "itens": [
+        { "titulo": "OTA verifica o certificado do servidor", "descricao": "Fase de validação: verifica e registra o resultado no Diagnóstico, sem bloquear a atualização.", "status": "feito", "versao": "1.6.0" },
+        { "titulo": "Confirmar certificado \"Verificado\" no aparelho", "descricao": "Conferir no Diagnóstico depois de uma verificação de atualização.", "status": "andamento", "responsavel": "Eduardo" },
+        { "titulo": "Tornar a verificação de certificado obrigatória", "descricao": "Depois da confirmação, o OTA só acontece com certificado válido.", "status": "a_fazer" },
+        { "titulo": "Atualizar só com consoles desligados", "descricao": "A instalação espera todos os consoles serem desligados; a página avisa que há versão pendente.", "status": "feito", "versao": "1.6.0" },
+        { "titulo": "Release só quando muda o firmware", "descricao": "Alterar documentação não gera mais versão nova nem reinicia aparelhos.", "status": "feito", "versao": "1.6.0" },
+        { "titulo": "Canais beta e estável", "descricao": "Seus aparelhos e voluntários recebem antes; clientes só depois.", "status": "a_fazer" },
+        { "titulo": "Liberação gradual", "descricao": "10%, 50%, 100% dos aparelhos, com possibilidade de pausar.", "status": "a_fazer" },
+        { "titulo": "Firmware assinado", "descricao": "O aparelho só instala versões assinadas pelo projeto.", "status": "a_fazer" },
+        { "titulo": "Testes automáticos e placa de teste", "descricao": "Testes no CI e uma placa real que recebe cada versão antes de liberar.", "status": "a_fazer" }
+      ]
+    },
+    {
+      "titulo": "Primeira configuração fácil",
+      "descricao": "Tirar da caixa e usar, sem conhecimento técnico.",
+      "itens": [
+        { "titulo": "Configurar o Wi-Fi pelo app", "descricao": "Via Bluetooth ou dentro do app, sem trocar de rede manualmente.", "status": "a_fazer" },
+        { "titulo": "Nome e senha únicos por aparelho", "descricao": "Ex.: RetroRelay-A3F2, com QR code na etiqueta.", "status": "a_fazer" },
+        { "titulo": "Botão de reset de fábrica", "descricao": "Apagar o Wi-Fi salvo ao trocar de roteador, sem precisar de cabo.", "status": "a_fazer" },
+        { "titulo": "Pareamento entre app e aparelho", "descricao": "Só quem pareou consegue controlar os relés.", "status": "a_fazer" },
+        { "titulo": "Vários aparelhos na mesma casa", "descricao": "Nomes únicos na rede e app com lista de aparelhos.", "status": "a_fazer" },
+        { "titulo": "Opção para quando a energia voltar", "descricao": "Escolher entre manter os consoles como estavam ou desligar tudo.", "status": "a_fazer" }
+      ]
+    },
+    {
+      "titulo": "Hardware e lançamento",
+      "descricao": "Placa definitiva, parte legal e chegada aos clientes.",
+      "itens": [
+        { "titulo": "Relés mantêm o estado durante o reset", "descricao": "Pull-down no pino de enable do 74HC595 e tirar os pinos 5 e 12 (strapping) do circuito.", "status": "a_fazer", "responsavel": "Eduardo" },
+        { "titulo": "Gabinete e segurança elétrica", "descricao": "Isolação, fusível e gabinete adequados se os relés chaveiam a tomada.", "status": "a_fazer", "responsavel": "Eduardo" },
+        { "titulo": "Homologação na Anatel", "descricao": "Obrigatória para produtos com Wi-Fi; módulo já homologado costuma simplificar.", "status": "a_fazer", "responsavel": "Eduardo" },
+        { "titulo": "Uso de marcas e imagens de consoles", "descricao": "Revisar nomes e imagens de fabricantes no app em produto comercial.", "status": "a_fazer", "responsavel": "Eduardo" },
+        { "titulo": "Beta com 5 a 10 pessoas", "descricao": "Usuários reais, acompanhando o Diagnóstico de cada aparelho.", "status": "a_fazer" },
+        { "titulo": "App nas lojas", "descricao": "Publicação na Play Store e App Store.", "status": "a_fazer" },
+        { "titulo": "Manual e suporte", "descricao": "Guia de instalação e um fluxo de suporte usando o Diagnóstico.", "status": "a_fazer" }
+      ]
+    }
+  ]
+}

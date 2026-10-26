@@ -529,7 +529,7 @@ function telaCanal(i) {
   const c = S.consoles[i] || { nome: '', imagem: '' };
   return `<form class="form" id="form-canal" autocomplete="off">
     <div class="campo">
-      <input id="nome" maxlength="48" placeholder="Ex: Super Nintendo" value="${esc(c.nome)}" autocapitalize="words">
+      <input id="nome" maxlength="32" placeholder="Ex: Super Nintendo" value="${esc(c.nome)}" autocapitalize="words">
       <label for="nome">Nome do console</label>
     </div>
     <div class="secao">Imagem</div>

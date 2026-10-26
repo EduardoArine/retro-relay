@@ -3,7 +3,7 @@
 #include <Preferences.h>
 
 #define TOTAL_CANAIS 16
-#define NOME_MAX 48
+#define NOME_MAX 96 // Bytes UTF-8: comporta os 32 caracteres da interface mesmo com acentos
 #define IMAGEM_MAX 256
 #define NVS_STRING_MAX 4000 // Limite de string do NVS
 

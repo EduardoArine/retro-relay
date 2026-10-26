@@ -6,6 +6,8 @@
 #include <ArduinoJson.h>
 #include <esp_ota_ops.h>
 
+#include "ConexaoManager.h"
+
 extern String firmwareVersion;
 
 String firmwareVersion = "#{Deploy_Version}#";
@@ -136,7 +138,7 @@ void checkAndUpdateFirmware() {
             break;
         case HTTP_UPDATE_OK:
             Serial.println("Atualização concluída com sucesso. Reiniciando...");
-            ESP.restart();
+            reiniciar("ota");
             break;
     }
 }

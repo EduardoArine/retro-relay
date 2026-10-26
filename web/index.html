@@ -207,6 +207,10 @@ main { flex: 1; overflow-y: auto; }
 .status.on { color: var(--ok); }
 .status.off { color: var(--erro); }
 hr { border: 0; border-top: 1px solid var(--outline-var); margin: 8px 0; }
+.secao-titulo { padding: 12px 16px 4px; font-weight: 500; letter-spacing: .1px; color: var(--primary); }
+.diag { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 0; padding: 4px 16px 16px; }
+.diag dt { color: var(--on-surface-var); }
+.diag dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
 
 /* Switch M3 */
 .switch { position: relative; width: 52px; height: 32px; flex: none; }
@@ -348,6 +352,7 @@ const S = {
   conectado: true,
   carregado: false,
   pendentes: 0,       // toggles em andamento (pausa o polling do estado)
+  diag: null,         // resposta do /diag (carregada ao abrir a Config)
 };
 
 const ativo = i => (S.estado & (1 << i)) !== 0;
@@ -395,6 +400,15 @@ async function atualizarEstado() {
   } catch {
     setConectado(false);
   }
+}
+
+async function carregarDiag() {
+  try {
+    S.diag = await (await api('/diag')).json();
+  } catch {
+    S.diag = null;
+  }
+  if (rota().tela === 'config') render();
 }
 
 async function carregarConsoles() {
@@ -565,7 +579,44 @@ function telaConfig() {
         <div class="sub">Versão ${esc(versao)}</div>
       </div>
       <button class="texto-btn" id="ota">${ico('atualizar')}Verificar atualização</button>
-    </div>`;
+    </div>
+    <hr>
+    <div class="secao-titulo">Diagnóstico</div>
+    ${diagHtml()}`;
+}
+
+function duracao(s) {
+  const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+  return d ? `${d}d ${h}h` : h ? `${h}h ${m}min` : `${m}min`;
+}
+
+const MOTIVOS_RESET = {
+  energia: 'Ligado na tomada', software: 'Reinício pelo firmware', crash: 'Travamento (crash)',
+  watchdog: 'Watchdog', queda_de_tensao: 'Queda de tensão', botao_reset: 'Botão reset', outro: 'Outro',
+};
+const MOTIVOS_REINICIO = {
+  ota: 'Atualização de firmware', wifi_sem_conexao: 'Sem Wi-Fi por 5 min',
+  wifi_nao_conectou_no_boot: 'Wi-Fi não conectou ao ligar',
+};
+
+// Dados do /diag para entender quando o dispositivo "some" da rede
+function diagHtml() {
+  const d = S.diag;
+  if (!d) return '<div class="linha"><div class="sub">Indisponível</div></div>';
+  const rssi = d.wifi.rssi;
+  const sinal = rssi >= -60 ? 'bom' : rssi >= -72 ? 'regular' : 'fraco';
+  const reinicio = d.reset === 'software' && d.ultimo_reinicio
+    ? MOTIVOS_REINICIO[d.ultimo_reinicio] || d.ultimo_reinicio
+    : MOTIVOS_RESET[d.reset] || d.reset;
+  const itens = [
+    ['Ligado há', duracao(d.ligado_ha_s)],
+    ['Último reinício', reinicio],
+    ['Sinal Wi-Fi', `${rssi} dBm (${sinal})`],
+    ['Quedas de Wi-Fi', d.wifi.desconexoes + (d.wifi.ultimo_motivo ? ` (última: ${d.wifi.ultimo_motivo})` : '')],
+    ['Reconexões forçadas', d.wifi.reconexoes_forcadas],
+    ['Memória livre', `${Math.round(d.memoria.livre / 1024)} KB (mínima ${Math.round(d.memoria.minima / 1024)} KB)`],
+  ];
+  return `<dl class="diag">${itens.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`;
 }
 
 // ─── Rotas (hash) ─────────────────────────────────────────────────────────
@@ -652,7 +703,12 @@ $('#view').addEventListener('change', e => {
   if (e.target.id === 'modo') alterarModo(e.target.checked);
 });
 
-window.addEventListener('hashchange', () => { navegouAqui = true; render(); $('main').scrollTop = 0; });
+window.addEventListener('hashchange', () => {
+  navegouAqui = true;
+  render();
+  $('main').scrollTop = 0;
+  if (rota().tela === 'config') carregarDiag();
+});
 
 // Polling: sincroniza com mudanças feitas pelo app e detecta queda de conexão
 setInterval(() => { if (!document.hidden) atualizarEstado(); }, POLL_MS);
@@ -665,6 +721,7 @@ Promise.all([carregarConsoles(), atualizarEstado()]).then(() => {
   S.carregado = true;
   render();
 });
+if (rota().tela === 'config') carregarDiag();
 </script>
 </body>
 </html>

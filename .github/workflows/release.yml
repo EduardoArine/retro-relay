@@ -4,6 +4,15 @@ on:
   push:
     branches:
       - main
+    # Só gera release (e OTA, que reinicia os dispositivos) quando muda algo do firmware
+    paths:
+      - "src/**"
+      - "web/**"
+      - "certs/**"
+      - "scripts/**"
+      - "partitions/**"
+      - "platformio.ini"
+      - ".github/workflows/release.yml"
 
 jobs:
   release:

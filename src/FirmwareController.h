@@ -7,6 +7,7 @@
 #include <esp_ota_ops.h>
 
 #include "ConexaoManager.h"
+#include "ReleManager.h"
 
 extern String firmwareVersion;
 
@@ -18,9 +19,23 @@ bool firmwareForceCheck = false;
 unsigned long lastCheckMillis = 0;
 const unsigned long intervalMillis = 30UL * 60UL * 1000UL;
 
-void checkAndUpdateFirmware();
-void loopOTA();
-String getLatestFirmwareVersion();
+// Raízes confiáveis para o HTTPS do OTA, geradas por scripts/gen_crt_bundle.py
+// e embutidas no firmware via board_build.embed_files
+extern const uint8_t x509_crt_bundle_start[] asm("_binary_certs_x509_crt_bundle_bin_start");
+
+// Fase de validação do certificado: com false, se a conexão verificada falhar mas
+// a sem verificação funcionar, o OTA segue sem verificar (como nas versões
+// anteriores) e registra "falhou" no /diag. Depois de confirmar "ok" no
+// dispositivo, mudar para true: aí o OTA só acontece com certificado válido.
+const bool OTA_EXIGIR_CERTIFICADO = false;
+
+String statusCertificadoOta = "nao_testado"; // ok | falhou | nao_testado (exposto no /diag)
+
+// O reinício desliga os relés por alguns segundos (pino de enable do 74HC595 em
+// nível alto durante o reset), então a atualização espera os consoles desligarem.
+String versaoPendente = "";          // Versão nova encontrada, ainda não baixada
+bool reinicioPendente = false;       // Versão nova já gravada, falta reiniciar
+const char *motivoReinicioOta = "ota";
 
 // Desliga a validação automática do core Arduino: quem valida é verifyFirmware()
 extern "C" bool verifyRollbackLater(){
@@ -70,26 +85,18 @@ void verifyFirmware()
     }
 }
 
-void loopOTA() {
-    unsigned long now = millis();
-
-    if (firmwareForceCheck || (now - lastCheckMillis >= intervalMillis)) {
-        firmwareForceCheck = false;
-        lastCheckMillis = now;
-
-        Serial.println("🚀 Executando verificação OTA");
-
-        esp_task_wdt_delete(NULL);
-
-        checkAndUpdateFirmware();
-
-        esp_task_wdt_add(NULL);
-    }
+static void configurarTls(WiFiClientSecure &client, bool verificarCertificado)
+{
+    if (verificarCertificado)
+        client.setCACertBundle(x509_crt_bundle_start);
+    else
+        client.setInsecure();
 }
 
-String getLatestFirmwareVersion() {
+static String buscarUltimaVersao(bool verificarCertificado)
+{
     WiFiClientSecure client;
-    client.setInsecure();
+    configurarTls(client, verificarCertificado);
 
     HTTPClient https;
     https.begin(client, "https://api.github.com/repos/EduardoArine/retro-relay/releases/latest");
@@ -98,9 +105,13 @@ String getLatestFirmwareVersion() {
     int httpCode = https.GET();
     if (httpCode != 200) return "";
 
-    String payload = https.getString();
+    // Só os campos usados: a resposta inteira inclui as notas da release
+    JsonDocument filtro;
+    filtro["tag_name"] = true;
+    filtro["assets"][0]["browser_download_url"] = true;
+
     JsonDocument doc;
-    DeserializationError err = deserializeJson(doc, payload);
+    DeserializationError err = deserializeJson(doc, https.getString(), DeserializationOption::Filter(filtro));
     if (err) return "";
 
     latestVersion = doc["tag_name"].as<String>();
@@ -108,18 +119,48 @@ String getLatestFirmwareVersion() {
     return latestVersion;
 }
 
-void checkAndUpdateFirmware() {
+String getLatestFirmwareVersion()
+{
+    String versao = buscarUltimaVersao(true);
+    if (versao != "")
+    {
+        statusCertificadoOta = "ok";
+        return versao;
+    }
+    if (OTA_EXIGIR_CERTIFICADO)
+        return "";
+
+    versao = buscarUltimaVersao(false);
+    if (versao != "")
+        statusCertificadoOta = "falhou"; // Só funcionou sem verificar: o problema é o certificado
+    return versao;
+}
+
+void verificarAtualizacao()
+{
+    // Build local (gravado pelo cabo) não tem versão: sem isso, seria trocado pela release
+    if (firmwareVersion.startsWith("#"))
+    {
+        Serial.println("Build de desenvolvimento: OTA desativado");
+        return;
+    }
+
     String remoteVersion = getLatestFirmwareVersion();
-    if (remoteVersion == "" || remoteVersion == firmwareVersion) {
+    if (remoteVersion == "" || remoteVersion == firmwareVersion)
+    {
+        versaoPendente = "";
         Serial.println("Firmware já está atualizado.");
         return;
     }
 
     Serial.println("Nova versão detectada: " + remoteVersion);
-    Serial.println("Iniciando OTA a partir de: " + firmwareUrl);
+    versaoPendente = remoteVersion;
+}
 
+static t_httpUpdate_return baixarFirmware(bool verificarCertificado)
+{
     WiFiClientSecure client;
-    client.setInsecure();
+    configurarTls(client, verificarCertificado);
 
     HTTPClient http;
     http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
@@ -127,18 +168,74 @@ void checkAndUpdateFirmware() {
 
     httpUpdate.rebootOnUpdate(false);
     httpUpdate.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
-    t_httpUpdate_return result = httpUpdate.update(http, firmwareVersion);
+    return httpUpdate.update(http, firmwareVersion);
+}
 
-    switch (result) {
-        case HTTP_UPDATE_FAILED:
-            Serial.println("Atualização falhou: " + String(httpUpdate.getLastError()) + " - " + httpUpdate.getLastErrorString());
-            break;
-        case HTTP_UPDATE_NO_UPDATES:
-            Serial.println("Nenhuma atualização disponível.");
-            break;
-        case HTTP_UPDATE_OK:
-            Serial.println("Atualização concluída com sucesso. Reiniciando...");
-            reiniciar("ota");
-            break;
+void aplicarAtualizacao()
+{
+    Serial.println("Iniciando OTA a partir de: " + firmwareUrl);
+    versaoPendente = "";
+
+    bool verificado = true;
+    t_httpUpdate_return result = baixarFirmware(true);
+    if (result == HTTP_UPDATE_FAILED && !OTA_EXIGIR_CERTIFICADO)
+    {
+        Serial.println("Download verificado falhou (" + httpUpdate.getLastErrorString() + "), tentando sem verificar");
+        verificado = false;
+        result = baixarFirmware(false);
     }
+
+    switch (result)
+    {
+    case HTTP_UPDATE_FAILED:
+        Serial.println("Atualização falhou: " + String(httpUpdate.getLastError()) + " - " + httpUpdate.getLastErrorString());
+        break;
+    case HTTP_UPDATE_NO_UPDATES:
+        Serial.println("Nenhuma atualização disponível.");
+        break;
+    case HTTP_UPDATE_OK:
+        Serial.println("Atualização gravada.");
+        motivoReinicioOta = verificado ? "ota" : "ota_sem_certificado";
+        reinicioPendente = true;
+        break;
+    }
+}
+
+void loopOTA()
+{
+    bool consolesDesligados = estadoAtual == 0;
+
+    // Firmware novo já gravado: reinicia assim que os consoles forem desligados
+    if (reinicioPendente)
+    {
+        if (consolesDesligados)
+            reiniciar(motivoReinicioOta);
+        return;
+    }
+
+    unsigned long now = millis();
+    bool verificar = firmwareForceCheck || (now - lastCheckMillis >= intervalMillis);
+    bool instalar = versaoPendente != "" && consolesDesligados;
+    if (!verificar && !instalar)
+        return;
+
+    esp_task_wdt_delete(NULL);
+
+    if (verificar)
+    {
+        firmwareForceCheck = false;
+        lastCheckMillis = now;
+        Serial.println("🚀 Executando verificação OTA");
+        verificarAtualizacao();
+    }
+
+    if (versaoPendente != "")
+    {
+        if (estadoAtual == 0)
+            aplicarAtualizacao();
+        else
+            Serial.println("⏸️ Atualização " + versaoPendente + " adiada até os consoles serem desligados");
+    }
+
+    esp_task_wdt_add(NULL);
 }

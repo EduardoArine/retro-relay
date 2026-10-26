@@ -11,4 +11,5 @@
 void iniciarMonitorWiFi();                   // Chamar no setup(), depois de conectar
 void monitorarWiFi();                        // Chamar no loop()
 void reiniciar(const char *motivo);          // Reinicia guardando o motivo para o /diag
+String motivoUltimoReinicio();               // Motivo passado a reiniciar() antes deste boot ("" se nenhum)
 void preencherDiagnostico(JsonDocument &doc);

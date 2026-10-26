@@ -70,6 +70,38 @@ void test_ota_sem_nada_pendente()
     TEST_ASSERT_TRUE(proximaAcaoOta(false, false, false, DESLIGADOS) == AcaoOta::NADA);
 }
 
+void test_aparelho_novo_ainda_nao_exige_verificacao()
+{
+    ExigenciasOta e = exigenciasNoBoot({false, false}, "", "nao_testado");
+    TEST_ASSERT_FALSE(e.certificado);
+    TEST_ASSERT_FALSE(e.assinatura);
+}
+
+void test_ota_verificado_e_assinado_liga_as_duas_exigencias()
+{
+    ExigenciasOta e = exigenciasNoBoot({false, false}, "ota", "valida");
+    TEST_ASSERT_TRUE(e.certificado);
+    TEST_ASSERT_TRUE(e.assinatura);
+}
+
+void test_cada_exigencia_liga_sozinha()
+{
+    ExigenciasOta e = exigenciasNoBoot({false, false}, "ota_sem_certificado", "valida");
+    TEST_ASSERT_FALSE(e.certificado);
+    TEST_ASSERT_TRUE(e.assinatura);
+
+    e = exigenciasNoBoot({false, false}, "ota", "sem_assinatura");
+    TEST_ASSERT_TRUE(e.certificado);
+    TEST_ASSERT_FALSE(e.assinatura);
+}
+
+void test_exigencia_ligada_nao_desliga_mais()
+{
+    ExigenciasOta e = exigenciasNoBoot({true, true}, "wifi_sem_conexao", "invalida");
+    TEST_ASSERT_TRUE(e.certificado);
+    TEST_ASSERT_TRUE(e.assinatura);
+}
+
 void test_wifi_espera_antes_de_reconectar()
 {
     TEST_ASSERT_TRUE(proximaAcaoWiFi(10000, 10000, DESLIGADOS) == AcaoWiFi::NADA);
@@ -100,6 +132,10 @@ int main()
     RUN_TEST(test_ota_nunca_instala_com_console_ligado);
     RUN_TEST(test_ota_verifica_mesmo_com_console_ligado);
     RUN_TEST(test_ota_sem_nada_pendente);
+    RUN_TEST(test_aparelho_novo_ainda_nao_exige_verificacao);
+    RUN_TEST(test_ota_verificado_e_assinado_liga_as_duas_exigencias);
+    RUN_TEST(test_cada_exigencia_liga_sozinha);
+    RUN_TEST(test_exigencia_ligada_nao_desliga_mais);
     RUN_TEST(test_wifi_espera_antes_de_reconectar);
     RUN_TEST(test_wifi_reinicia_apos_5_minutos_com_consoles_desligados);
     RUN_TEST(test_wifi_nunca_reinicia_com_console_ligado);

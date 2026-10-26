@@ -58,3 +58,23 @@ inline AcaoOta proximaAcaoOta(bool reinicioPendente, bool temVersaoPendente, boo
         return AcaoOta::INSTALAR;
     return AcaoOta::NADA;
 }
+
+// Certificado e assinatura do OTA são obrigatórios, mas cada exigência só liga
+// depois que a verificação funcionou uma vez neste aparelho e daí não desliga
+// mais (nem na restauração de fábrica). Se a verificação nunca funcionar num
+// aparelho, ele segue atualizando sem ela em vez de ficar preso na versão atual.
+struct ExigenciasOta
+{
+    bool certificado;
+    bool assinatura;
+};
+
+// Calculadas no boot, a partir de como esta versão chegou:
+//   ultimoReinicio "ota": baixada com certificado verificado (os dois servidores do
+//     GitHub, API e download, passaram pela verificação)
+//   ultimaAssinatura "valida": a versão anterior conferiu a assinatura desta
+inline ExigenciasOta exigenciasNoBoot(ExigenciasOta salvas, const char *ultimoReinicio, const char *ultimaAssinatura)
+{
+    return {salvas.certificado || strcmp(ultimoReinicio, "ota") == 0,
+            salvas.assinatura || strcmp(ultimaAssinatura, "valida") == 0};
+}

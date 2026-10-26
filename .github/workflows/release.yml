@@ -28,9 +28,6 @@ jobs:
   release:
     needs: testes
     runs-on: ubuntu-latest
-    env:
-      # Sem o secret, a release sai sem .sig (aparelhos registram "sem assinatura")
-      TEM_CHAVE_OTA: ${{ secrets.OTA_CHAVE_PRIVADA != '' }}
 
     steps:
       - name: Checkout código
@@ -69,11 +66,16 @@ jobs:
           mkdir firmware
           cp .pio/build/esp32dev/firmware.bin firmware/retrorelay-${{ steps.gitversion.outputs.semVer }}.bin
 
+      # Assinatura obrigatória: aparelhos que já exigem assinatura descartariam uma
+      # versão sem .sig, então sem o secret a release não é publicada
       - name: Assinar firmware
-        if: env.TEM_CHAVE_OTA == 'true'
         env:
           OTA_CHAVE_PRIVADA: ${{ secrets.OTA_CHAVE_PRIVADA }}
         run: |
+          if [ -z "$OTA_CHAVE_PRIVADA" ]; then
+            echo "::error::Secret OTA_CHAVE_PRIVADA não cadastrado: a release não será publicada sem assinatura"
+            exit 1
+          fi
           BIN=firmware/retrorelay-${{ steps.gitversion.outputs.semVer }}.bin
           CHAVE="$RUNNER_TEMP/chave.pem"
           umask 077

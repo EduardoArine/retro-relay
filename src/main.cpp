@@ -50,8 +50,8 @@ void setupWebServer()
     preencherDiagnostico(doc);
     JsonObject ota = doc["ota"].to<JsonObject>();
     ota["certificado"] = statusCertificadoOta;
-    ota["exige_certificado"] = OTA_EXIGIR_CERTIFICADO;
-    ota["exige_assinatura"] = OTA_EXIGIR_ASSINATURA;
+    ota["exige_certificado"] = exigenciasOta.certificado;
+    ota["exige_assinatura"] = exigenciasOta.assinatura;
     preencherAssinatura(ota);
     ota["canal"] = nomeCanal(canalAtual);
     ota["grupo"] = grupoDoAparelho();
@@ -172,6 +172,7 @@ void setup()
   carregarEstadoSalvo();
   conectarWiFi();
   iniciarMonitorWiFi();
+  carregarExigencias();
 
   firmwareForceCheck = true;
 

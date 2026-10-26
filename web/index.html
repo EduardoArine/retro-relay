@@ -695,8 +695,8 @@ function diagHtml() {
     ['Quedas de Wi-Fi', d.wifi.desconexoes + (d.wifi.ultimo_motivo ? ` (última: ${d.wifi.ultimo_motivo})` : '')],
     ['Reconexões forçadas', d.wifi.reconexoes_forcadas],
     ['Memória livre', `${Math.round(d.memoria.livre / 1024)} KB (mínima ${Math.round(d.memoria.minima / 1024)} KB)`],
-    ['Certificado do OTA', CERTIFICADO_OTA[d.ota?.certificado] || '—'],
-    ['Assinatura do firmware', (ASSINATURA_OTA[d.ota?.assinatura] || '—') + (d.ota?.assinatura_versao ? ` (${d.ota.assinatura_versao})` : '')],
+    ['Certificado do OTA', (CERTIFICADO_OTA[d.ota?.certificado] || '—') + (d.ota?.exige_certificado ? ' · obrigatório' : '')],
+    ['Assinatura do firmware', (ASSINATURA_OTA[d.ota?.assinatura] || '—') + (d.ota?.assinatura_versao ? ` (${d.ota.assinatura_versao})` : '') + (d.ota?.exige_assinatura ? ' · obrigatória' : '')],
     ['Canal de atualização', d.ota?.canal === 'beta' ? 'Beta' : `Estável · grupo ${d.ota?.grupo ?? '—'} (recebe com liberação acima de ${d.ota?.grupo ?? '—'}%)`],
   ];
   return `<dl class="diag">${itens.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`;

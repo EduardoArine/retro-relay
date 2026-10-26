@@ -69,6 +69,11 @@ void monitorarWiFi()
     }
 }
 
+String motivoUltimoReinicio()
+{
+    return ultimoReinicio;
+}
+
 void reiniciar(const char *motivo)
 {
     strlcpy(motivoReinicio, motivo, sizeof(motivoReinicio));

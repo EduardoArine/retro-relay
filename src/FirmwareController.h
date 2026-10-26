@@ -29,19 +29,14 @@ const unsigned long intervalMillis = 30UL * 60UL * 1000UL;
 // e embutidas no firmware via board_build.embed_files
 extern const uint8_t x509_crt_bundle_start[] asm("_binary_certs_x509_crt_bundle_bin_start");
 
-// Fase de validação do certificado: com false, se a conexão verificada falhar mas
-// a sem verificação funcionar, o OTA segue sem verificar (como nas versões
-// anteriores) e registra "falhou" no /diag. Depois de confirmar "ok" no
-// dispositivo, mudar para true: aí o OTA só acontece com certificado válido.
-const bool OTA_EXIGIR_CERTIFICADO = false;
+// Certificado e assinatura (chaves em certs/*.pub.pem) obrigatórios, ligados por
+// aparelho conforme exigenciasNoBoot() e gravados na NVS. Com a exigência ligada:
+//   certificado: o OTA só acontece com o certificado do GitHub verificado
+//   assinatura: firmware sem assinatura válida é descartado antes do reinício
+// Antes disso, o OTA segue sem a verificação e só registra o resultado no /diag.
+ExigenciasOta exigenciasOta = {false, false};
 
 String statusCertificadoOta = "nao_testado"; // ok | falhou | nao_testado (exposto no /diag)
-
-// Fase de validação da assinatura do firmware (chaves em certs/*.pub.pem): com
-// false, o resultado só é registrado no /diag e o firmware é instalado mesmo sem
-// assinatura válida. Depois de ver "valida" no dispositivo, mudar para true: aí
-// firmware sem assinatura válida é descartado antes do reinício.
-const bool OTA_EXIGIR_ASSINATURA = false;
 
 String assinaturaUrl = "";  // .bin.sig da release ("" = release sem assinatura)
 size_t firmwareTamanho = 0; // Bytes do .bin, para conferir a assinatura do que foi gravado
@@ -130,6 +125,21 @@ void definirCanal(CanalOta canal)
     firmwareForceCheck = true; // Consulta já no canal novo
 }
 
+// Chamar no setup(), depois de iniciarMonitorWiFi() (que lê o motivo do reinício)
+void carregarExigencias()
+{
+    Preferences prefs;
+    prefs.begin("ota", false);
+    ExigenciasOta salvas = {prefs.getBool("exige_cert", false), prefs.getBool("exige_assin", false)};
+    String ultimaAssinatura = prefs.getString("assinatura", "nao_testado");
+    exigenciasOta = exigenciasNoBoot(salvas, motivoUltimoReinicio().c_str(), ultimaAssinatura.c_str());
+    if (exigenciasOta.certificado != salvas.certificado)
+        prefs.putBool("exige_cert", true);
+    if (exigenciasOta.assinatura != salvas.assinatura)
+        prefs.putBool("exige_assin", true);
+    prefs.end();
+}
+
 // Consulta a versão disponível para este aparelho. Retorna false se a consulta
 // falhou; com true, versaoDisponivel fica "" quando não há versão liberada para ele.
 //   Estável: /releases/latest (só versões promovidas) + porcentagem liberada
@@ -178,7 +188,7 @@ String getLatestFirmwareVersion()
         statusCertificadoOta = "ok";
         return versao;
     }
-    if (OTA_EXIGIR_CERTIFICADO)
+    if (exigenciasOta.certificado)
         return "";
 
     if (consultarVersao(false, versao))
@@ -250,7 +260,7 @@ void aplicarAtualizacao()
 
     bool verificado = true;
     t_httpUpdate_return result = baixarFirmware(true);
-    if (result == HTTP_UPDATE_FAILED && !OTA_EXIGIR_CERTIFICADO)
+    if (result == HTTP_UPDATE_FAILED && !exigenciasOta.certificado)
     {
         Serial.println("Download verificado falhou (" + httpUpdate.getLastErrorString() + "), tentando sem verificar");
         verificado = false;
@@ -275,7 +285,7 @@ void aplicarAtualizacao()
         registrarAssinatura(resultado, latestVersion);
         Serial.printf("Assinatura do firmware: %s\n", nomeResultado(resultado));
 
-        if (!aceitarFirmware(resultado, OTA_EXIGIR_ASSINATURA))
+        if (!aceitarFirmware(resultado, exigenciasOta.assinatura))
         {
             descartarFirmwareGravado();
             versaoRecusada = latestVersion;

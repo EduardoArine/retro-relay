@@ -4,6 +4,7 @@
 #include <ESPAsyncWiFiManager.h>  // versão compatível
 
 #include "ConexaoManager.h"
+#include "IdentidadeManager.h"
 
 extern AsyncWebServer server;  // Apenas declara que será usada de fora
 
@@ -12,14 +13,14 @@ void conectarWiFi() {
   AsyncWiFiManager wm(&server, &dns);
 
   // Nome do dispositivo na lista do roteador (padrão seria "esp32-XXXXXX")
-  WiFi.setHostname("retrorelay");
+  WiFi.setHostname(nomeDispositivo());
 
   // Sem economia de energia: em modo sleep o rádio perde pacotes multicast/broadcast
   // (mDNS e ARP) e o dispositivo some da rede. A placa é alimentada pela tomada.
   WiFi.setSleep(false);
 
   wm.setConfigPortalTimeout(300);
-  bool res = wm.autoConnect("RetroRelay-Setup", "admin");
+  bool res = wm.autoConnect(nomePortalConfiguracao(), "admin");
 
   if (!res) {
     Serial.println("⚠️ Falha ao conectar ao WiFi");

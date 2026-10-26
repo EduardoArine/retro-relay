@@ -105,8 +105,6 @@ void setup()
 {
   Serial.begin(115200);
 
-  verifyFirmware();
-
   inicializarReles();
   carregarEstadoSalvo();
   conectarWiFi();
@@ -124,6 +122,10 @@ void setup()
   esp_task_wdt_add(NULL);
 
   setupWebServer();
+
+  // Só valida um firmware recém-atualizado depois que WiFi e servidor subiram:
+  // se ele travar ou não conectar antes disso, o bootloader volta para a versão anterior
+  verifyFirmware();
 }
 
 void loop()

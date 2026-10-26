@@ -66,6 +66,14 @@ void alternarRele(int canal)
 void setModo(ModoRele modo)
 {
     modoAtual = modo;
+
+    if (modo == ModoRele::UNICO)
+    {
+        // Mantém ligado apenas o primeiro canal ativo (mesma regra do app)
+        estadoAtual &= (uint16_t)(-estadoAtual);
+        aplicarEstado();
+    }
+
     salvarEstado();
 }
 

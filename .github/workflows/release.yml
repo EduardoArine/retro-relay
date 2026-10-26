@@ -14,6 +14,13 @@ on:
       - "platformio.ini"
       - ".github/workflows/release.yml"
 
+# Uma release por vez, na ordem dos pushes: se duas rodassem em paralelo, a mais
+# antiga poderia terminar por último, virar a "latest" e os aparelhos voltariam
+# para a versão anterior
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   testes:
     uses: ./.github/workflows/testes.yml
@@ -63,6 +70,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.gitversion.outputs.semVer }}
+          # A tag aponta para o commit compilado, não para o topo da main na hora de publicar
+          target_commitish: ${{ github.sha }}
           files: firmware/*.bin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

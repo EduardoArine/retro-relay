@@ -33,6 +33,8 @@ void setupWebServer()
     doc["estado"] = estadoAtual;
     doc["modo"] = getModoAtual() == ModoRele::MULTI ? "multi" : "unico";
     doc["versao"] = firmwareVersion;
+    // Versão nova esperando os consoles desligarem para ser instalada ("" = nenhuma)
+    doc["atualizacao_pendente"] = reinicioPendente ? latestVersion : versaoPendente;
     String body;
     serializeJson(doc, body);
     request->send(200, "application/json", body); });
@@ -42,6 +44,9 @@ void setupWebServer()
     JsonDocument doc;
     doc["versao"] = firmwareVersion;
     preencherDiagnostico(doc);
+    JsonObject ota = doc["ota"].to<JsonObject>();
+    ota["certificado"] = statusCertificadoOta;
+    ota["exige_certificado"] = OTA_EXIGIR_CERTIFICADO;
     String body;
     serializeJson(doc, body);
     request->send(200, "application/json", body); });
@@ -105,7 +110,9 @@ void setupWebServer()
 
   server.on("/check-ota", HTTP_GET, [](AsyncWebServerRequest *request){
     firmwareForceCheck = true;
-    request->send(200, "text/plain", "Forçando verificação OTA...");
+    request->send(200, "text/plain", estadoAtual == 0
+      ? "Verificando… se houver versão nova, o dispositivo reinicia sozinho"
+      : "Verificando… se houver versão nova, ela será instalada quando os consoles forem desligados");
   });
 
   server.begin();

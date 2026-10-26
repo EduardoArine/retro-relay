@@ -353,6 +353,7 @@ const S = {
   carregado: false,
   pendentes: 0,       // toggles em andamento (pausa o polling do estado)
   diag: null,         // resposta do /diag (carregada ao abrir a Config)
+  atualizacao: '',    // versão nova esperando os consoles desligarem
 };
 
 const ativo = i => (S.estado & (1 << i)) !== 0;
@@ -394,8 +395,9 @@ async function atualizarEstado() {
     const d = await (await api('/estado')).json();
     setConectado(true);
     if (S.pendentes) return;
-    const mudou = d.estado !== S.estado || d.modo !== S.modo || d.versao !== S.versao;
-    S.estado = d.estado; S.modo = d.modo; S.versao = d.versao;
+    const atualizacao = d.atualizacao_pendente || '';
+    const mudou = d.estado !== S.estado || d.modo !== S.modo || d.versao !== S.versao || atualizacao !== S.atualizacao;
+    S.estado = d.estado; S.modo = d.modo; S.versao = d.versao; S.atualizacao = atualizacao;
     if (mudou && rota().tela !== 'canal') render();
   } catch {
     setConectado(false);
@@ -462,8 +464,7 @@ async function alterarModo(unico) {
 async function verificarAtualizacao(btn) {
   btn.disabled = true;
   try {
-    await api('/check-ota');
-    toast('Verificando… se houver versão nova, o dispositivo reinicia sozinho');
+    toast(await (await api('/check-ota')).text());
   } catch {
     toast('Falha ao solicitar a verificação');
   }
@@ -577,6 +578,7 @@ function telaConfig() {
       <div class="textos">
         <div class="titulo">Firmware</div>
         <div class="sub">Versão ${esc(versao)}</div>
+        ${S.atualizacao ? `<div class="sub" style="color:var(--primary)">Versão ${esc(S.atualizacao)} será instalada quando os consoles forem desligados</div>` : ''}
       </div>
       <button class="texto-btn" id="ota">${ico('atualizar')}Verificar atualização</button>
     </div>
@@ -597,7 +599,9 @@ const MOTIVOS_RESET = {
 const MOTIVOS_REINICIO = {
   ota: 'Atualização de firmware', wifi_sem_conexao: 'Sem Wi-Fi por 5 min',
   wifi_nao_conectou_no_boot: 'Wi-Fi não conectou ao ligar',
+  ota_sem_certificado: 'Atualização (certificado não verificado)',
 };
+const CERTIFICADO_OTA = { ok: 'Verificado', falhou: 'Falhou (atualiza sem verificar)', nao_testado: 'Ainda não testado' };
 
 // Dados do /diag para entender quando o dispositivo "some" da rede
 function diagHtml() {
@@ -615,6 +619,7 @@ function diagHtml() {
     ['Quedas de Wi-Fi', d.wifi.desconexoes + (d.wifi.ultimo_motivo ? ` (última: ${d.wifi.ultimo_motivo})` : '')],
     ['Reconexões forçadas', d.wifi.reconexoes_forcadas],
     ['Memória livre', `${Math.round(d.memoria.livre / 1024)} KB (mínima ${Math.round(d.memoria.minima / 1024)} KB)`],
+    ['Certificado do OTA', CERTIFICADO_OTA[d.ota?.certificado] || '—'],
   ];
   return `<dl class="diag">${itens.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`;
 }

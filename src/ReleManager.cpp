@@ -72,6 +72,13 @@ void salvarEstado()
     prefs.end();
 }
 
+void apagarEstadoSalvo()
+{
+    prefs.begin("retrorelay", false);
+    prefs.clear();
+    prefs.end();
+}
+
 void carregarEstadoSalvo()
 {
     prefs.begin("retrorelay", true);

@@ -7,6 +7,7 @@
 #include "FirmwareController.h"
 #include "IdentidadeManager.h"
 #include "ReleManager.h"
+#include "ResetManager.h"
 #include "WiFiMQTT.h"
 #include "web_index.h" // Gerado por scripts/embed_web.py a partir de web/index.html
 
@@ -94,6 +95,23 @@ void setupWebServer()
           ((char *)request->_tempObject)[total] = '\0';
       });
 
+  // Pedem "X-Confirmar: sim": cabeçalho próprio faz o navegador bloquear pedidos
+  // vindos de outros sites (exige CORS), então só a página do aparelho consegue resetar
+  auto rotaReset = [](TipoReset tipo)
+  {
+    return [tipo](AsyncWebServerRequest *request)
+    {
+      String erro;
+      bool confirmado = request->header("X-Confirmar") == "sim";
+      if (pedirReset(tipo, confirmado, erro))
+        request->send(200, "text/plain", "Reiniciando");
+      else
+        request->send(409, "text/plain", erro);
+    };
+  };
+  server.on("/esquecer-wifi", HTTP_POST, rotaReset(TipoReset::WIFI));
+  server.on("/restaurar-fabrica", HTTP_POST, rotaReset(TipoReset::FABRICA));
+
   server.on("/ligar", HTTP_GET, [](AsyncWebServerRequest *request)
             {
     if (request->hasParam("canal")) {
@@ -155,6 +173,7 @@ void loop()
 {
   esp_task_wdt_reset();
   monitorarWiFi();
+  executarResetPendente();
   loopOTA();
   delay(100);
 }

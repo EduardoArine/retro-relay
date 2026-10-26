@@ -88,6 +88,8 @@ main { flex: 1; overflow-y: auto; }
 .texto-btn svg { width: 18px; height: 18px; }
 .texto-btn:hover { background: rgba(220, 184, 255, .08); }
 .texto-btn:disabled { color: rgba(231, 224, 232, .38); cursor: default; }
+.texto-btn.perigo { color: #FFB4AB; }
+.texto-btn.perigo:hover { background: rgba(255, 180, 171, .08); }
 
 /* Home: grid de consoles */
 .grid {
@@ -355,6 +357,7 @@ const S = {
   diag: null,         // resposta do /diag (carregada ao abrir a Config)
   atualizacao: '',    // versão nova esperando os consoles desligarem
   nome: '',           // nome único do aparelho (retrorelay-a3f2)
+  reiniciando: '',    // rede do portal de configuração após um reset pela página
 };
 
 const ativo = i => (S.estado & (1 << i)) !== 0;
@@ -472,6 +475,38 @@ async function verificarAtualizacao(btn) {
   setTimeout(() => { btn.disabled = false; }, 10000);
 }
 
+// Rede aberta pelo aparelho para configurar o Wi-Fi: RetroRelay-A3F2
+function nomePortal() {
+  return 'RetroRelay-' + (S.nome.split('-')[1] || 'XXXX').toUpperCase();
+}
+
+const RESETS = {
+  'esquecer-wifi': {
+    titulo: 'Trocar rede Wi-Fi',
+    texto: 'O Retro Relay vai esquecer o Wi-Fi atual e reiniciar. Os consoles cadastrados são mantidos.',
+    botao: 'Trocar',
+  },
+  'restaurar-fabrica': {
+    titulo: 'Restaurar padrões de fábrica',
+    texto: 'Apaga o Wi-Fi, todos os consoles cadastrados e o modo, e reinicia. Não dá para desfazer.',
+    botao: 'Restaurar',
+  },
+};
+
+function confirmarReset(acao) {
+  const r = RESETS[acao];
+  dialogo(r.titulo, esc(r.texto), r.botao, async () => {
+    try {
+      // Cabeçalho exigido pelo aparelho: impede que outros sites peçam o reset
+      await api('/' + acao, { method: 'POST', headers: { 'X-Confirmar': 'sim' } });
+      S.reiniciando = nomePortal();
+      render();
+    } catch (e) {
+      toast(e.message);
+    }
+  });
+}
+
 function confirmarRemocao(i) {
   const c = S.consoles[i];
   dialogo('Remover console', `Remover "${esc(c.nome)}" do canal ${i + 1}?`, 'Remover', async () => {
@@ -585,7 +620,23 @@ function telaConfig() {
     </div>
     <hr>
     <div class="secao-titulo">Diagnóstico</div>
-    ${diagHtml()}`;
+    ${diagHtml()}
+    <hr>
+    <div class="secao-titulo">Manutenção</div>
+    <div class="linha">
+      <div class="textos">
+        <div class="titulo">Trocar rede Wi-Fi</div>
+        <div class="sub">Esquece o Wi-Fi atual e abre a rede de configuração</div>
+      </div>
+      <button class="texto-btn perigo" id="esquecer-wifi">Trocar</button>
+    </div>
+    <div class="linha">
+      <div class="textos">
+        <div class="titulo">Restaurar padrões de fábrica</div>
+        <div class="sub">Apaga Wi-Fi, consoles cadastrados e modo</div>
+      </div>
+      <button class="texto-btn perigo" id="restaurar-fabrica">Restaurar</button>
+    </div>`;
 }
 
 function duracao(s) {
@@ -601,6 +652,7 @@ const MOTIVOS_REINICIO = {
   ota: 'Atualização de firmware', wifi_sem_conexao: 'Sem Wi-Fi por 5 min',
   wifi_nao_conectou_no_boot: 'Wi-Fi não conectou ao ligar',
   ota_sem_certificado: 'Atualização (certificado não verificado)',
+  wifi_esquecido: 'Troca de rede Wi-Fi', restaurado_fabrica: 'Padrões de fábrica restaurados',
 };
 const CERTIFICADO_OTA = { ok: 'Verificado', falhou: 'Falhou (atualiza sem verificar)', nao_testado: 'Ainda não testado' };
 
@@ -640,6 +692,15 @@ const ABAS = [
 ];
 
 function render() {
+  if (S.reiniciando) {
+    $('#titulo').textContent = 'Reiniciando';
+    $('#voltar').hidden = true;
+    $('#view').innerHTML = `<div class="vazio">O Retro Relay está reiniciando.
+
+Para configurar o Wi-Fi, conecte o celular à rede <b>${esc(S.reiniciando)}</b> e siga as instruções que aparecerem.</div>`;
+    return;
+  }
+
   const r = rota();
   const aba = r.tela === 'canal' ? 'cadastro' : r.tela;
   const titulos = { home: 'Retro Relay', cadastro: 'Cadastro', config: 'Configurações', canal: `Canal ${r.canal + 1}` };
@@ -697,12 +758,13 @@ $('#voltar').innerHTML = ico('voltar');
 $('#voltar').onclick = voltar;
 
 $('#view').addEventListener('click', e => {
-  const t = e.target.closest('[data-canal],[data-editar],[data-remover],#ota');
+  const t = e.target.closest('[data-canal],[data-editar],[data-remover],#ota,#esquecer-wifi,#restaurar-fabrica');
   if (!t) return;
   if (t.dataset.canal !== undefined) alternar(+t.dataset.canal);
   else if (t.dataset.remover !== undefined) { e.stopPropagation(); confirmarRemocao(+t.dataset.remover); }
   else if (t.dataset.editar !== undefined) location.hash = '#canal/' + t.dataset.editar;
   else if (t.id === 'ota') verificarAtualizacao(t);
+  else if (RESETS[t.id]) confirmarReset(t.id);
 });
 
 $('#view').addEventListener('change', e => {

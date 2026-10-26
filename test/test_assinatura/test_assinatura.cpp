@@ -93,15 +93,6 @@ void test_fase_de_validacao_e_fase_obrigatoria()
     TEST_ASSERT_TRUE(aceitarFirmware(ResultadoAssinatura::SEM_ASSINATURA, false));
 }
 
-void test_arquivos_da_release()
-{
-    TEST_ASSERT_TRUE(ehArquivoFirmware("retrorelay-1.9.0.bin"));
-    TEST_ASSERT_FALSE(ehArquivoFirmware("retrorelay-1.9.0.bin.sig"));
-    TEST_ASSERT_TRUE(ehArquivoAssinatura("retrorelay-1.9.0.bin.sig"));
-    TEST_ASSERT_FALSE(ehArquivoAssinatura("retrorelay-1.9.0.bin"));
-    TEST_ASSERT_FALSE(ehArquivoFirmware("bin"));
-}
-
 int main()
 {
     UNITY_BEGIN();
@@ -112,6 +103,5 @@ int main()
     RUN_TEST(test_aceita_qualquer_chave_da_lista);
     RUN_TEST(test_release_sem_assinatura);
     RUN_TEST(test_fase_de_validacao_e_fase_obrigatoria);
-    RUN_TEST(test_arquivos_da_release);
     return UNITY_END();
 }

@@ -1,0 +1,45 @@
+name: Promover versão para estável
+
+# Botão em Actions > "Promover versão para estável" > Run workflow.
+# Toda versão nasce beta; aqui ela passa a valer para os aparelhos no canal
+# estável, para a porcentagem escolhida. Para ampliar (ex.: 10 -> 50 -> 100),
+# rode de novo com a mesma versão e a nova porcentagem.
+on:
+  workflow_dispatch:
+    inputs:
+      versao:
+        description: "Versão a promover (ex.: 1.10.0)"
+        required: true
+      liberacao:
+        description: "Porcentagem de aparelhos que recebem (1 a 100)"
+        required: true
+        default: "100"
+
+permissions:
+  contents: write
+
+jobs:
+  promover:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Promover
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSAO: ${{ inputs.versao }}
+          LIBERACAO: ${{ inputs.liberacao }}
+        run: |
+          if ! [[ "$LIBERACAO" =~ ^[0-9]+$ ]] || [ "$LIBERACAO" -lt 1 ] || [ "$LIBERACAO" -gt 100 ]; then
+            echo "::error::A liberação deve ser um número de 1 a 100 (recebido: $LIBERACAO)"
+            exit 1
+          fi
+          if ! [[ "$VERSAO" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Versão inválida: $VERSAO (use o formato 1.10.0)"
+            exit 1
+          fi
+          gh release view "$VERSAO" --repo "$GITHUB_REPOSITORY" > /dev/null
+
+          # Os aparelhos leem a porcentagem da linha "liberacao: N" nas notas da release
+          gh release edit "$VERSAO" --repo "$GITHUB_REPOSITORY" \
+            --prerelease=false --latest --notes "liberacao: $LIBERACAO"
+
+          echo "### Versão $VERSAO promovida para estável ($LIBERACAO% dos aparelhos)" >> "$GITHUB_STEP_SUMMARY"

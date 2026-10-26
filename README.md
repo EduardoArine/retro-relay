@@ -18,3 +18,11 @@ node scripts/checar_web.js web/index.html docs/index.html   # sintaxe do JS das 
 ```
 
 O CI (`.github/workflows/testes.yml`) roda tudo isso a cada push; a release só é publicada se os testes passarem.
+
+## Como liberar uma versão
+
+1. Merge na `main` com mudança de firmware gera uma release **beta** (pre-release), assinada se o secret `OTA_CHAVE_PRIVADA` existir. Só aparelhos com **Versões beta** ligado (Config da página) recebem.
+2. Depois de testar, em **Actions → Promover versão para estável → Run workflow**, informe a versão e a porcentagem de aparelhos (ex.: 10). Para ampliar, rode de novo com 50 e depois 100.
+3. Cada aparelho tem um grupo fixo de 0 a 99 (Diagnóstico da página) e recebe quando a porcentagem passa do grupo dele. Nenhum aparelho volta para uma versão mais antiga.
+
+Chaves de assinatura: as públicas ficam em `certs/ota_*.pub.pem` (embutidas no firmware); a privada principal fica só no secret `OTA_CHAVE_PRIVADA` e a reserva, fora do GitHub.

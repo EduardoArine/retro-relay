@@ -91,6 +91,10 @@ jobs:
           tag_name: ${{ steps.gitversion.outputs.semVer }}
           # A tag aponta para o commit compilado, não para o topo da main na hora de publicar
           target_commitish: ${{ github.sha }}
+          # Toda versão nasce beta (só aparelhos no canal beta recebem). Para clientes,
+          # promover com o workflow "Promover versão para estável". "[estavel]" na
+          # mensagem do commit publica direto como estável (exceção, ex.: transição)
+          prerelease: ${{ !contains(github.event.head_commit.message, '[estavel]') }}
           # .bin primeiro: aparelhos até a 1.8.0 baixam o primeiro arquivo da release
           files: |
             firmware/*.bin

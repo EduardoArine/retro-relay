@@ -358,6 +358,7 @@ const S = {
   atualizacao: '',    // versão nova esperando os consoles desligarem
   nome: '',           // nome único do aparelho (retrorelay-a3f2)
   reiniciando: '',    // rede do portal de configuração após um reset pela página
+  canal: 'estavel',   // canal de atualização: 'estavel' | 'beta'
 };
 
 const ativo = i => (S.estado & (1 << i)) !== 0;
@@ -400,8 +401,9 @@ async function atualizarEstado() {
     setConectado(true);
     if (S.pendentes) return;
     const atualizacao = d.atualizacao_pendente || '';
-    const mudou = d.estado !== S.estado || d.modo !== S.modo || d.versao !== S.versao || atualizacao !== S.atualizacao || (d.nome || '') !== S.nome;
-    S.estado = d.estado; S.modo = d.modo; S.versao = d.versao; S.atualizacao = atualizacao; S.nome = d.nome || '';
+    const canal = d.canal || 'estavel';
+    const mudou = d.estado !== S.estado || d.modo !== S.modo || d.versao !== S.versao || atualizacao !== S.atualizacao || (d.nome || '') !== S.nome || canal !== S.canal;
+    S.estado = d.estado; S.modo = d.modo; S.versao = d.versao; S.atualizacao = atualizacao; S.nome = d.nome || ''; S.canal = canal;
     if (mudou && rota().tela !== 'canal') render();
   } catch {
     setConectado(false);
@@ -461,6 +463,19 @@ async function alterarModo(unico) {
     await atualizarEstado();
   } catch {
     toast('Falha ao alterar o modo');
+    render();
+  }
+}
+
+async function alterarCanal(beta) {
+  try {
+    await api('/canal?valor=' + (beta ? 'beta' : 'estavel'), { method: 'POST' });
+    toast(beta ? 'Canal beta: recebe as versões novas assim que saírem'
+               : 'Canal estável: recebe só as versões liberadas para clientes');
+    await atualizarEstado();
+    carregarDiag();
+  } catch {
+    toast('Falha ao alterar o canal');
     render();
   }
 }
@@ -618,6 +633,13 @@ function telaConfig() {
       </div>
       <button class="texto-btn" id="ota">${ico('atualizar')}Verificar atualização</button>
     </div>
+    <label class="linha" style="cursor:pointer">
+      <div class="textos">
+        <div class="titulo">Versões beta</div>
+        <div class="sub">Recebe versões novas antes dos clientes, para testar</div>
+      </div>
+      <span class="switch"><input type="checkbox" id="beta"${S.canal === 'beta' ? ' checked' : ''}><span class="trilho"></span></span>
+    </label>
     <hr>
     <div class="secao-titulo">Diagnóstico</div>
     ${diagHtml()}
@@ -675,6 +697,7 @@ function diagHtml() {
     ['Memória livre', `${Math.round(d.memoria.livre / 1024)} KB (mínima ${Math.round(d.memoria.minima / 1024)} KB)`],
     ['Certificado do OTA', CERTIFICADO_OTA[d.ota?.certificado] || '—'],
     ['Assinatura do firmware', (ASSINATURA_OTA[d.ota?.assinatura] || '—') + (d.ota?.assinatura_versao ? ` (${d.ota.assinatura_versao})` : '')],
+    ['Canal de atualização', d.ota?.canal === 'beta' ? 'Beta' : `Estável · grupo ${d.ota?.grupo ?? '—'} (recebe com liberação acima de ${d.ota?.grupo ?? '—'}%)`],
   ];
   return `<dl class="diag">${itens.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`;
 }
@@ -771,6 +794,7 @@ $('#view').addEventListener('click', e => {
 
 $('#view').addEventListener('change', e => {
   if (e.target.id === 'modo') alterarModo(e.target.checked);
+  if (e.target.id === 'beta') alterarCanal(e.target.checked);
 });
 
 window.addEventListener('hashchange', () => {

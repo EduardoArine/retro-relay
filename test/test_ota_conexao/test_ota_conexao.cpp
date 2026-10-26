@@ -31,6 +31,20 @@ void test_versao_nova()
     TEST_ASSERT_FALSE(haVersaoNova("", "1.6.1")); // Falha ao consultar o GitHub
 }
 
+void test_nunca_volta_para_versao_anterior()
+{
+    TEST_ASSERT_FALSE(haVersaoNova("1.8.0", "1.9.0"));
+    TEST_ASSERT_FALSE(haVersaoNova("0.9.9", "1.0.0"));
+}
+
+void test_compara_versoes_numericamente()
+{
+    TEST_ASSERT_TRUE(haVersaoNova("1.10.0", "1.9.0"));
+    TEST_ASSERT_TRUE(haVersaoNova("2.0.0", "1.99.99"));
+    TEST_ASSERT_TRUE(compararVersoes("1.9.0-beta.1", "1.9.0") == 0);
+    TEST_ASSERT_TRUE(compararVersoes("1.9", "1.9.0") == 0);
+}
+
 void test_ota_nunca_reinicia_com_console_ligado()
 {
     TEST_ASSERT_TRUE(proximaAcaoOta(true, false, false, UM_LIGADO) == AcaoOta::NADA);
@@ -80,6 +94,8 @@ int main()
     RUN_TEST(test_decorrido_atravessa_a_volta_do_millis);
     RUN_TEST(test_build_de_desenvolvimento);
     RUN_TEST(test_versao_nova);
+    RUN_TEST(test_nunca_volta_para_versao_anterior);
+    RUN_TEST(test_compara_versoes_numericamente);
     RUN_TEST(test_ota_nunca_reinicia_com_console_ligado);
     RUN_TEST(test_ota_nunca_instala_com_console_ligado);
     RUN_TEST(test_ota_verifica_mesmo_com_console_ligado);

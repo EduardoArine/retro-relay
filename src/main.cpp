@@ -35,6 +35,7 @@ void setupWebServer()
     doc["modo"] = getModoAtual() == ModoRele::MULTI ? "multi" : "unico";
     doc["nome"] = nomeDispositivo();
     doc["versao"] = firmwareVersion;
+    doc["canal"] = nomeCanal(canalAtual);
     // Versão nova esperando os consoles desligarem para ser instalada ("" = nenhuma)
     doc["atualizacao_pendente"] = reinicioPendente ? latestVersion : versaoPendente;
     String body;
@@ -52,6 +53,9 @@ void setupWebServer()
     ota["exige_certificado"] = OTA_EXIGIR_CERTIFICADO;
     ota["exige_assinatura"] = OTA_EXIGIR_ASSINATURA;
     preencherAssinatura(ota);
+    ota["canal"] = nomeCanal(canalAtual);
+    ota["grupo"] = grupoDoAparelho();
+    ota["liberacao"] = ultimaLiberacao;
     String body;
     serializeJson(doc, body);
     request->send(200, "application/json", body); });
@@ -111,6 +115,17 @@ void setupWebServer()
         request->send(409, "text/plain", erro);
     };
   };
+  // Canal de atualização: beta recebe toda versão nova; estável, só as promovidas
+  server.on("/canal", HTTP_POST, [](AsyncWebServerRequest *request)
+            {
+    String valor = request->hasParam("valor") ? request->getParam("valor")->value() : "";
+    if (valor != "beta" && valor != "estavel") {
+      request->send(400, "text/plain", "Use valor=beta ou valor=estavel");
+      return;
+    }
+    definirCanal(valor == "beta" ? CanalOta::BETA : CanalOta::ESTAVEL);
+    request->send(200, "text/plain", valor); });
+
   server.on("/esquecer-wifi", HTTP_POST, rotaReset(TipoReset::WIFI));
   server.on("/restaurar-fabrica", HTTP_POST, rotaReset(TipoReset::FABRICA));
 
@@ -152,6 +167,7 @@ void setup()
   Serial.begin(115200);
 
   iniciarIdentidade();
+  carregarCanal();
   inicializarReles();
   carregarEstadoSalvo();
   conectarWiFi();

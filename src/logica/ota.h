@@ -1,6 +1,7 @@
 #pragma once
 // Decisões do OTA, sem dependência de hardware (testadas em test/test_ota_conexao).
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "tempo.h"
@@ -11,10 +12,27 @@ inline bool ehBuildDesenvolvimento(const char *versao)
     return versao[0] == '#';
 }
 
-// Há versão para instalar: a remota existe e é diferente da atual
+// Compara versões "X.Y.Z" numericamente (1.10.0 > 1.9.0); o que vier depois
+// do terceiro número (ex.: "-beta.1") é ignorado. Retorna <0, 0 ou >0.
+inline int compararVersoes(const char *a, const char *b)
+{
+    for (int parte = 0; parte < 3; parte++)
+    {
+        char *fimA, *fimB;
+        long na = strtol(a, &fimA, 10), nb = strtol(b, &fimB, 10);
+        if (na != nb)
+            return na < nb ? -1 : 1;
+        a = *fimA == '.' ? fimA + 1 : fimA;
+        b = *fimB == '.' ? fimB + 1 : fimB;
+    }
+    return 0;
+}
+
+// Há versão para instalar: a remota existe e é mais nova que a atual. Nunca volta
+// para uma versão anterior (ex.: ao trocar do canal beta para o estável).
 inline bool haVersaoNova(const char *remota, const char *atual)
 {
-    return remota[0] != '\0' && strcmp(remota, atual) != 0;
+    return remota[0] != '\0' && compararVersoes(remota, atual) > 0;
 }
 
 enum class AcaoOta

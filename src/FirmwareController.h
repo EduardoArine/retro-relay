@@ -5,11 +5,15 @@
 #include <HTTPUpdate.h>
 #include <ArduinoJson.h>
 #include <esp_ota_ops.h>
+#include <Preferences.h>
 
 #include "AssinaturaOta.h"
 #include "ConexaoManager.h"
+#include "IdentidadeManager.h"
 #include "ReleManager.h"
+#include "logica/canais.h"
 #include "logica/ota.h"
+#include "logica/release.h"
 
 extern String firmwareVersion;
 
@@ -105,54 +109,71 @@ static void configurarTls(WiFiClientSecure &client, bool verificarCertificado)
         client.setInsecure();
 }
 
-static String buscarUltimaVersao(bool verificarCertificado)
+CanalOta canalAtual = CanalOta::ESTAVEL;
+int ultimaLiberacao = 100; // Porcentagem liberada da última versão estável consultada (para o /diag)
+
+void carregarCanal()
 {
+    Preferences prefs;
+    prefs.begin("ota", true);
+    canalAtual = canalSalvo(prefs.getUChar("canal", (uint8_t)CanalOta::ESTAVEL));
+    prefs.end();
+}
+
+void definirCanal(CanalOta canal)
+{
+    canalAtual = canal;
+    Preferences prefs;
+    prefs.begin("ota", false);
+    prefs.putUChar("canal", (uint8_t)canal);
+    prefs.end();
+    firmwareForceCheck = true; // Consulta já no canal novo
+}
+
+// Consulta a versão disponível para este aparelho. Retorna false se a consulta
+// falhou; com true, versaoDisponivel fica "" quando não há versão liberada para ele.
+//   Estável: /releases/latest (só versões promovidas) + porcentagem liberada
+//   Beta:    /releases?per_page=1 (a mais recente, promovida ou não)
+static bool consultarVersao(bool verificarCertificado, String &versaoDisponivel)
+{
+    bool beta = canalAtual == CanalOta::BETA;
     WiFiClientSecure client;
     configurarTls(client, verificarCertificado);
 
     HTTPClient https;
-    https.begin(client, "https://api.github.com/repos/EduardoArine/retro-relay/releases/latest");
+    https.begin(client, beta ? "https://api.github.com/repos/EduardoArine/retro-relay/releases?per_page=1"
+                             : "https://api.github.com/repos/EduardoArine/retro-relay/releases/latest");
     https.addHeader("User-Agent", "ESP32-Agent");
 
     int httpCode = https.GET();
-    if (httpCode != 200) return "";
+    if (httpCode != 200) return false;
 
-    // Só os campos usados: a resposta inteira inclui as notas da release
-    JsonDocument filtro;
-    filtro["tag_name"] = true;
-    filtro["assets"][0]["name"] = true; // Em filtro, o item [0] vale para todos os itens da lista
-    filtro["assets"][0]["browser_download_url"] = true;
-    filtro["assets"][0]["size"] = true;
+    InfoRelease release;
+    if (!lerRelease(https.getString().c_str(), beta, release)) return false;
 
-    JsonDocument doc;
-    DeserializationError err = deserializeJson(doc, https.getString(), DeserializationOption::Filter(filtro));
-    if (err) return "";
+    latestVersion = release.versao.c_str();
+    firmwareUrl = release.firmwareUrl.c_str();
+    firmwareTamanho = release.firmwareTamanho;
+    assinaturaUrl = release.assinaturaUrl.c_str();
+    versaoDisponivel = firmwareUrl == "" ? "" : latestVersion;
 
-    // Arquivos pelo nome: retrorelay-X.Y.Z.bin e retrorelay-X.Y.Z.bin.sig
-    firmwareUrl = "";
-    assinaturaUrl = "";
-    firmwareTamanho = 0;
-    for (JsonObjectConst arquivo : doc["assets"].as<JsonArrayConst>())
+    if (!beta)
     {
-        const char *nome = arquivo["name"] | "";
-        if (ehArquivoAssinatura(nome))
-            assinaturaUrl = arquivo["browser_download_url"].as<String>();
-        else if (ehArquivoFirmware(nome) && firmwareUrl == "")
+        ultimaLiberacao = lerLiberacao(release.notas.c_str());
+        if (versaoDisponivel != "" && !liberadaParaAparelho(canalAtual, ultimaLiberacao, grupoDoAparelho()))
         {
-            firmwareUrl = arquivo["browser_download_url"].as<String>();
-            firmwareTamanho = arquivo["size"] | 0;
+            Serial.printf("Versão %s liberada para %d%% dos aparelhos; este é do grupo %u: aguardando\n",
+                          latestVersion.c_str(), ultimaLiberacao, grupoDoAparelho());
+            versaoDisponivel = "";
         }
     }
-    if (firmwareUrl == "") return "";
-
-    latestVersion = doc["tag_name"].as<String>();
-    return latestVersion;
+    return true;
 }
 
 String getLatestFirmwareVersion()
 {
-    String versao = buscarUltimaVersao(true);
-    if (versao != "")
+    String versao;
+    if (consultarVersao(true, versao))
     {
         statusCertificadoOta = "ok";
         return versao;
@@ -160,8 +181,7 @@ String getLatestFirmwareVersion()
     if (OTA_EXIGIR_CERTIFICADO)
         return "";
 
-    versao = buscarUltimaVersao(false);
-    if (versao != "")
+    if (consultarVersao(false, versao))
         statusCertificadoOta = "falhou"; // Só funcionou sem verificar: o problema é o certificado
     return versao;
 }

@@ -58,12 +58,3 @@ inline const char *nomeResultado(ResultadoAssinatura resultado)
         return "sem_assinatura";
     }
 }
-
-// Arquivos da release: retrorelay-X.Y.Z.bin e retrorelay-X.Y.Z.bin.sig
-inline bool terminaCom(const char *texto, const char *sufixo)
-{
-    size_t t = strlen(texto), s = strlen(sufixo);
-    return t >= s && strcmp(texto + t - s, sufixo) == 0;
-}
-inline bool ehArquivoFirmware(const char *nome) { return terminaCom(nome, ".bin"); }
-inline bool ehArquivoAssinatura(const char *nome) { return terminaCom(nome, ".bin.sig"); }

@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#171212">
+<title>Retro Relay</title>
+<!--
+  Interface web do Retro Relay, servida pelo próprio ESP32.
+  Espelha o app Flutter (tema escuro roxo, Home / Cadastro / Config).
+  Este arquivo é comprimido e embutido no firmware por scripts/embed_web.py,
+  então chega ao dispositivo junto com cada atualização OTA.
+  Sem dependências externas: só as imagens dos consoles vêm do CDN.
+-->
+<style>
+:root {
+  /* Aproximação do ColorScheme.fromSeed(0xFF4A1080, dark) do app */
+  --bg: #171212;
+  --surface: #151218;
+  --surface-high: #2B2930;
+  --nav: #211F26;
+  --primary: #DCB8FF;
+  --on-primary: #3F0F6B;
+  --primary-container: #5A2C87;
+  --secondary-container: #4E4358;
+  --on-surface: #E7E0E8;
+  --on-surface-var: #CDC3CE;
+  --outline: #968E98;
+  --outline-var: #4B454D;
+  --inverse: #E7E0E8;
+  --on-inverse: #322F35;
+  --ok: #4CAF50;
+  --erro: #F44336;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--on-surface);
+  font: 14px/1.43 Roboto, system-ui, -apple-system, "Segoe UI", sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
+svg { width: 24px; height: 24px; fill: currentColor; flex: none; }
+
+/* AppBar */
+header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 56px;
+  padding: 0 16px;
+  padding-top: env(safe-area-inset-top);
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+header h1 { font-size: 22px; font-weight: 400; margin: 0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+header .voltar { margin-left: -8px; }
+
+main { flex: 1; overflow-y: auto; }
+.conteudo { max-width: 960px; margin: 0 auto; }
+
+/* Botões de ícone e botões M3 */
+.icone-btn {
+  width: 40px; height: 40px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  color: var(--on-surface-var);
+}
+.icone-btn:hover { background: rgba(231, 224, 232, .08); }
+.filled {
+  height: 40px; padding: 0 24px;
+  border-radius: 20px;
+  background: var(--primary); color: var(--on-primary);
+  font-weight: 500; letter-spacing: .1px;
+}
+.filled:disabled { background: rgba(231, 224, 232, .12); color: rgba(231, 224, 232, .38); cursor: default; }
+.texto-btn {
+  height: 40px; padding: 0 12px;
+  border-radius: 20px;
+  color: var(--primary); font-weight: 500;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.texto-btn svg { width: 18px; height: 18px; }
+.texto-btn:hover { background: rgba(220, 184, 255, .08); }
+.texto-btn:disabled { color: rgba(231, 224, 232, .38); cursor: default; }
+
+/* Home: grid de consoles */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  padding: 12px;
+}
+@media (min-width: 600px) {
+  .grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+}
+.card {
+  aspect-ratio: .9;
+  display: flex; flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--outline);
+  border-radius: 12px;
+  transition: background .2s, border-color .2s;
+  overflow: hidden;
+  text-align: center;
+}
+.card.ativo {
+  background: rgba(90, 44, 135, .3);
+  border: 2px solid var(--primary);
+}
+.card .img {
+  flex: 1; min-height: 0;
+  display: flex; align-items: center; justify-content: center;
+  padding: 8px;
+}
+.card .img img { width: 100%; height: 100%; object-fit: contain; }
+.card .img svg { width: 40px; height: 40px; color: rgba(231, 224, 232, .2); }
+.card .nome {
+  padding: 0 8px 10px;
+  font-size: 12px; line-height: 16px; letter-spacing: .4px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+.vazio {
+  padding: 48px 24px;
+  text-align: center;
+  white-space: pre-line;
+  color: rgba(231, 224, 232, .5);
+}
+
+/* Cadastro: lista de canais */
+.tile {
+  display: flex; align-items: center; gap: 16px;
+  min-height: 72px;
+  padding: 8px 8px 8px 16px;
+  cursor: pointer;
+}
+.tile:hover { background: rgba(231, 224, 232, .05); }
+.avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--surface-high);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; flex: none;
+}
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.tile .textos { flex: 1; min-width: 0; }
+.tile .titulo { font-size: 16px; line-height: 24px; }
+.tile .sub { color: var(--on-surface-var); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Formulários */
+.form { padding: 16px; display: flex; flex-direction: column; }
+.campo { position: relative; margin-top: 8px; }
+.campo input {
+  width: 100%; height: 56px;
+  padding: 0 16px;
+  background: transparent;
+  color: var(--on-surface);
+  font: inherit; font-size: 16px;
+  border: 1px solid var(--outline);
+  border-radius: 4px;
+  outline: none;
+}
+.campo input:focus { border: 2px solid var(--primary); padding: 0 15px; }
+.campo label {
+  position: absolute; left: 12px; top: -8px;
+  padding: 0 4px;
+  background: var(--bg);
+  font-size: 12px; line-height: 16px;
+  color: var(--on-surface-var);
+}
+.campo input:focus + label { color: var(--primary); }
+.secao { font-size: 14px; font-weight: 500; letter-spacing: .1px; margin: 24px 0 8px; }
+.imagens {
+  display: flex; gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+.imagens button {
+  flex: none;
+  width: 72px; height: 90px;
+  border: 1px solid var(--outline);
+  border-radius: 8px;
+  overflow: hidden;
+  scroll-snap-align: start;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .15s;
+}
+.imagens button.sel { border: 2px solid var(--primary); }
+.imagens img { width: 100%; height: 100%; object-fit: contain; }
+.form .filled { margin-top: 32px; }
+
+/* Config */
+.linha { display: flex; align-items: center; gap: 16px; padding: 12px 16px; }
+.linha .textos { flex: 1; }
+.linha .titulo { font-size: 16px; line-height: 24px; }
+.linha .sub { color: var(--on-surface-var); }
+.status { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+.status svg { width: 16px; height: 16px; }
+.status.on { color: var(--ok); }
+.status.off { color: var(--erro); }
+hr { border: 0; border-top: 1px solid var(--outline-var); margin: 8px 0; }
+
+/* Switch M3 */
+.switch { position: relative; width: 52px; height: 32px; flex: none; }
+.switch input { opacity: 0; width: 100%; height: 100%; margin: 0; position: absolute; cursor: pointer; z-index: 1; }
+.switch .trilho {
+  position: absolute; inset: 0;
+  border-radius: 16px;
+  background: var(--surface-high);
+  border: 2px solid var(--outline);
+  transition: background .2s, border-color .2s;
+}
+.switch .trilho::after {
+  content: "";
+  position: absolute; top: 6px; left: 6px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--outline);
+  transition: all .2s;
+}
+.switch input:checked + .trilho { background: var(--primary); border-color: var(--primary); }
+.switch input:checked + .trilho::after { left: 22px; top: 2px; width: 24px; height: 24px; background: var(--on-primary); }
+
+/* NavigationBar */
+nav {
+  display: flex;
+  height: 80px;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--nav);
+  box-sizing: content-box;
+}
+nav a {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  color: var(--on-surface-var);
+  text-decoration: none;
+  font-size: 12px; font-weight: 500; letter-spacing: .5px;
+}
+nav .pilula {
+  position: relative;
+  width: 64px; height: 32px;
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .2s;
+}
+nav a.sel { color: var(--on-surface); }
+nav a.sel .pilula { background: var(--secondary-container); }
+nav .badge {
+  position: absolute; top: 4px; left: 38px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--erro);
+  display: none;
+}
+body.offline nav .badge { display: block; }
+
+/* SnackBar */
+#toast {
+  position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom));
+  transform: translate(-50%, 16px);
+  max-width: calc(100% - 32px); width: max-content;
+  padding: 14px 16px;
+  border-radius: 4px;
+  background: var(--inverse); color: var(--on-inverse);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, .4);
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s, transform .2s;
+  z-index: 10;
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* AlertDialog */
+.scrim {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, .5);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  z-index: 20;
+}
+.dialogo {
+  width: 100%; max-width: 360px;
+  padding: 24px 24px 16px;
+  border-radius: 28px;
+  background: var(--surface-high);
+}
+.dialogo h2 { margin: 0 0 16px; font-size: 24px; font-weight: 400; }
+.dialogo p { margin: 0; color: var(--on-surface-var); }
+.dialogo .acoes { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
+</style>
+</head>
+<body>
+<header>
+  <button class="icone-btn voltar" id="voltar" hidden aria-label="Voltar"></button>
+  <h1 id="titulo">Retro Relay</h1>
+</header>
+<main><div class="conteudo" id="view"></div></main>
+<nav id="nav"></nav>
+<div id="toast" role="status"></div>
+
+<script>
+'use strict';
+
+// ─── Constantes (espelho de AppConstants do app) ──────────────────────────
+const TOTAL_CANAIS = 16;
+const POLL_MS = 5000;
+const CDN = 'https://raw.githubusercontent.com/EduardoArine/retro-relay-images/refs/heads/main/';
+const IMAGENS = [
+  'atari_2600.png',
+  'nes.png', 'snes.png', 'n64.png', 'game_cube.png', 'nintendo_wii.png', 'nintendo_switch.png',
+  'master_system.png', 'mega_drive.png', 'sega_saturn.png', 'sega_dreamcast.png',
+  'ps1.png', 'ps2.png', 'ps3.png', 'ps4.png', 'ps5.png',
+  'xbox.png', 'xbox_360.png', 'xbox_one.png', 'xbox_series_s.png', 'xbox_series_x.png',
+  'neogeo.png', 'neogeo_cd.png',
+  'pc_engine.png', 'turbo_grafx.png',
+  '3do.png',
+].map(n => CDN + n);
+
+// ─── Ícones Material (SVG inline) ─────────────────────────────────────────
+const ICONES = {
+  home: '<path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>',
+  homeOutline: '<path d="M12 5.69l5 4.5V18h-2v-6H9v6H7v-7.81l5-4.5M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/>',
+  lista: '<path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>',
+  config: '<path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/>',
+  editar: '<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM5.92 19H5v-.92l9.06-9.06.92.92L5.92 19zM20.71 5.63l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83a1 1 0 0 0 0-1.41z"/>',
+  remover: '<path d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"/>',
+  voltar: '<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>',
+  console: '<path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 10H3V8h18v8zM6 15h2v-2h2v-2H8V9H6v2H4v2h2v2z"/><circle cx="14.5" cy="13.5" r="1.5"/><circle cx="18.5" cy="10.5" r="1.5"/>',
+  wifi: '<path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.24 4.24 0 0 0-6 0zm-4-4l2 2a7.07 7.07 0 0 1 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/>',
+  wifiOff: '<path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.24 4.24 0 0 0-6 0zm-4-4l2 2a7.07 7.07 0 0 1 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" opacity=".4"/><path d="M3.5 2.1L2.1 3.5l18.4 18.4 1.4-1.4z"/>',
+  atualizar: '<path d="M17.65 6.35A7.96 7.96 0 0 0 12 4a8 8 0 1 0 7.73 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>',
+};
+const ico = nome => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONES[nome]}</svg>`;
+
+// ─── Estado ───────────────────────────────────────────────────────────────
+const S = {
+  estado: 0,          // bitmask dos 16 relés
+  modo: 'unico',      // 'unico' | 'multi'
+  versao: '',
+  consoles: {},       // { canal: { nome, imagem } }
+  conectado: true,
+  carregado: false,
+  pendentes: 0,       // toggles em andamento (pausa o polling do estado)
+};
+
+const ativo = i => (S.estado & (1 << i)) !== 0;
+const $ = sel => document.querySelector(sel);
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+}
+
+// Só URLs http(s) viram <img>. Caminhos locais do celular (imagem própria no app) caem no ícone.
+function imagemHtml(url, iconeFallback) {
+  if (!/^https?:\/\//.test(url || '')) return iconeFallback;
+  return `<img src="${esc(url)}" alt="" loading="lazy" onerror="this.outerHTML=ICONE_ERRO">`;
+}
+const ICONE_ERRO = ico('console');
+
+// ─── API do ESP32 ─────────────────────────────────────────────────────────
+async function api(caminho, opcoes = {}) {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), 5000);
+  try {
+    const r = await fetch(caminho, { ...opcoes, signal: ctl.signal });
+    if (!r.ok) throw new Error(await r.text() || r.status);
+    return r;
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+function setConectado(ok) {
+  if (S.conectado === ok) return;
+  S.conectado = ok;
+  document.body.classList.toggle('offline', !ok);
+  if (rota().tela === 'config') render();
+}
+
+async function atualizarEstado() {
+  try {
+    const d = await (await api('/estado')).json();
+    setConectado(true);
+    if (S.pendentes) return;
+    const mudou = d.estado !== S.estado || d.modo !== S.modo || d.versao !== S.versao;
+    S.estado = d.estado; S.modo = d.modo; S.versao = d.versao;
+    if (mudou && rota().tela !== 'canal') render();
+  } catch {
+    setConectado(false);
+  }
+}
+
+async function carregarConsoles() {
+  try {
+    const lista = await (await api('/consoles')).json();
+    S.consoles = {};
+    for (const c of lista) S.consoles[c.canal] = { nome: c.nome, imagem: c.imagem || '' };
+  } catch {
+    toast('Não foi possível carregar os consoles');
+  }
+}
+
+async function salvarConsoles(novos) {
+  const lista = Object.keys(novos).map(Number).sort((a, b) => a - b)
+    .map(canal => ({ canal, nome: novos[canal].nome, imagem: novos[canal].imagem }));
+  await api('/consoles', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(lista),
+  });
+  S.consoles = novos;
+}
+
+// ─── Ações ────────────────────────────────────────────────────────────────
+// Mesma regra do app: atualiza a tela na hora e confirma com o ESP depois.
+async function alternar(i) {
+  const bit = 1 << i;
+  S.estado = S.modo === 'unico' ? (S.estado & bit ? 0 : bit) : S.estado ^ bit;
+  render();
+  S.pendentes++;
+  try {
+    await api('/ligar?canal=' + i);
+  } catch {
+    toast('Falha ao comunicar com o dispositivo');
+  } finally {
+    S.pendentes--;
+    atualizarEstado();
+  }
+}
+
+async function alterarModo(unico) {
+  try {
+    await api('/modo?valor=' + (unico ? 'unico' : 'multi'));
+    await atualizarEstado();
+  } catch {
+    toast('Falha ao alterar o modo');
+    render();
+  }
+}
+
+async function verificarAtualizacao(btn) {
+  btn.disabled = true;
+  try {
+    await api('/check-ota');
+    toast('Verificando… se houver versão nova, o dispositivo reinicia sozinho');
+  } catch {
+    toast('Falha ao solicitar a verificação');
+  }
+  setTimeout(() => { btn.disabled = false; }, 10000);
+}
+
+function confirmarRemocao(i) {
+  const c = S.consoles[i];
+  dialogo('Remover console', `Remover "${esc(c.nome)}" do canal ${i + 1}?`, 'Remover', async () => {
+    const novos = { ...S.consoles };
+    delete novos[i];
+    try {
+      await salvarConsoles(novos);
+      render();
+    } catch (e) {
+      toast('Falha ao remover: ' + e.message);
+    }
+  });
+}
+
+// ─── Componentes ──────────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg) {
+  const el = $('#toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+function dialogo(titulo, textoHtml, acao, aoConfirmar) {
+  const scrim = document.createElement('div');
+  scrim.className = 'scrim';
+  scrim.innerHTML = `<div class="dialogo" role="dialog" aria-modal="true">
+    <h2>${esc(titulo)}</h2><p>${textoHtml}</p>
+    <div class="acoes"><button class="texto-btn" data-r="0">Cancelar</button><button class="texto-btn" data-r="1">${esc(acao)}</button></div>
+  </div>`;
+  scrim.onclick = e => {
+    const r = e.target.dataset.r;
+    if (e.target !== scrim && r === undefined) return;
+    scrim.remove();
+    if (r === '1') aoConfirmar();
+  };
+  document.body.appendChild(scrim);
+}
+
+// ─── Telas ────────────────────────────────────────────────────────────────
+function telaHome() {
+  const canais = Object.keys(S.consoles).map(Number).sort((a, b) => a - b);
+  if (!canais.length) {
+    return `<div class="vazio">${S.carregado ? 'Nenhum console cadastrado.\nAcesse "Cadastro" para configurar.' : 'Carregando…'}</div>`;
+  }
+  return `<div class="grid">${canais.map(i => {
+    const c = S.consoles[i];
+    return `<button class="card${ativo(i) ? ' ativo' : ''}" data-canal="${i}" aria-pressed="${ativo(i)}">
+      <div class="img">${imagemHtml(c.imagem, ico('console'))}</div>
+      <div class="nome">${esc(c.nome)}</div>
+    </button>`;
+  }).join('')}</div>`;
+}
+
+function telaCadastro() {
+  let html = '';
+  for (let i = 0; i < TOTAL_CANAIS; i++) {
+    const c = S.consoles[i];
+    html += `<div class="tile" data-editar="${i}">
+      <div class="avatar">${c ? imagemHtml(c.imagem, ico('console')) : ico('console')}</div>
+      <div class="textos"><div class="titulo">Slot ${i + 1}</div>${c ? `<div class="sub">${esc(c.nome)}</div>` : ''}</div>
+      <button class="icone-btn" data-editar="${i}" title="Editar" aria-label="Editar">${ico('editar')}</button>
+      ${c ? `<button class="icone-btn" data-remover="${i}" title="Remover" aria-label="Remover">${ico('remover')}</button>` : ''}
+    </div>`;
+  }
+  return html;
+}
+
+function telaCanal(i) {
+  const c = S.consoles[i] || { nome: '', imagem: '' };
+  return `<form class="form" id="form-canal" autocomplete="off">
+    <div class="campo">
+      <input id="nome" maxlength="32" placeholder="Ex: Super Nintendo" value="${esc(c.nome)}" autocapitalize="words">
+      <label for="nome">Nome do console</label>
+    </div>
+    <div class="secao">Imagem</div>
+    <div class="imagens" id="imagens">${IMAGENS.map(url =>
+      `<button type="button" data-img="${esc(url)}"${url === c.imagem ? ' class="sel"' : ''}>${imagemHtml(url, '')}</button>`
+    ).join('')}</div>
+    <button class="filled" id="salvar" type="submit"${c.nome.trim() ? '' : ' disabled'}>Salvar</button>
+  </form>`;
+}
+
+function telaConfig() {
+  const versao = !S.versao || S.versao.startsWith('#') ? 'desenvolvimento' : S.versao;
+  return `
+    <div class="linha">
+      <div class="textos">
+        <div class="titulo">Dispositivo</div>
+        <div class="sub">http://${esc(location.host)}</div>
+      </div>
+      <div class="status ${S.conectado ? 'on' : 'off'}">${ico(S.conectado ? 'wifi' : 'wifiOff')}${S.conectado ? 'Conectado' : 'Sem conexão'}</div>
+    </div>
+    <hr>
+    <label class="linha" style="cursor:pointer">
+      <div class="textos">
+        <div class="titulo">Modo único</div>
+        <div class="sub">Apenas um console ativo por vez</div>
+      </div>
+      <span class="switch"><input type="checkbox" id="modo"${S.modo === 'unico' ? ' checked' : ''}><span class="trilho"></span></span>
+    </label>
+    <hr>
+    <div class="linha">
+      <div class="textos">
+        <div class="titulo">Firmware</div>
+        <div class="sub">Versão ${esc(versao)}</div>
+      </div>
+      <button class="texto-btn" id="ota">${ico('atualizar')}Verificar atualização</button>
+    </div>`;
+}
+
+// ─── Rotas (hash) ─────────────────────────────────────────────────────────
+// #home, #cadastro, #config, #canal/N
+function rota() {
+  const [tela, arg] = location.hash.slice(1).split('/');
+  if (tela === 'canal' && +arg >= 0 && +arg < TOTAL_CANAIS) return { tela, canal: +arg };
+  return { tela: ['cadastro', 'config'].includes(tela) ? tela : 'home' };
+}
+
+const ABAS = [
+  { tela: 'home', rotulo: 'Home', icone: 'homeOutline', iconeSel: 'home' },
+  { tela: 'cadastro', rotulo: 'Cadastro', icone: 'lista', iconeSel: 'lista' },
+  { tela: 'config', rotulo: 'Config', icone: 'config', iconeSel: 'config', badge: true },
+];
+
+function render() {
+  const r = rota();
+  const aba = r.tela === 'canal' ? 'cadastro' : r.tela;
+  const titulos = { home: 'Retro Relay', cadastro: 'Cadastro', config: 'Configurações', canal: `Canal ${r.canal + 1}` };
+
+  $('#titulo').textContent = titulos[r.tela];
+  document.title = r.tela === 'home' ? 'Retro Relay' : titulos[r.tela] + ' · Retro Relay';
+  $('#voltar').hidden = r.tela !== 'canal';
+
+  $('#nav').innerHTML = ABAS.map(a => `<a href="#${a.tela}"${a.tela === aba ? ' class="sel" aria-current="page"' : ''}>
+    <span class="pilula">${ico(a.tela === aba ? a.iconeSel : a.icone)}${a.badge ? '<span class="badge"></span>' : ''}</span>${a.rotulo}</a>`).join('');
+
+  const telas = { home: telaHome, cadastro: telaCadastro, config: telaConfig, canal: () => telaCanal(r.canal) };
+  $('#view').innerHTML = telas[r.tela]();
+  if (r.tela === 'canal') ligarFormCanal(r.canal);
+}
+
+function ligarFormCanal(i) {
+  const form = $('#form-canal'), nome = $('#nome'), salvar = $('#salvar');
+  let imagem = (S.consoles[i] || {}).imagem || '';
+
+  nome.oninput = () => { salvar.disabled = !nome.value.trim(); };
+  $('#imagens').onclick = e => {
+    const b = e.target.closest('[data-img]');
+    if (!b) return;
+    imagem = b.dataset.img;
+    form.querySelectorAll('[data-img]').forEach(x => x.classList.toggle('sel', x === b));
+  };
+  form.onsubmit = async e => {
+    e.preventDefault();
+    const n = nome.value.trim();
+    if (!n) return;
+    salvar.disabled = true;
+    try {
+      await salvarConsoles({ ...S.consoles, [i]: { nome: n, imagem } });
+      voltar();
+    } catch (err) {
+      toast('Falha ao salvar: ' + err.message);
+      salvar.disabled = false;
+    }
+  };
+  const sel = form.querySelector('.sel');
+  if (sel) sel.scrollIntoView({ inline: 'center', block: 'nearest' });
+  if (!S.consoles[i]) nome.focus();
+}
+
+// ─── Eventos ──────────────────────────────────────────────────────────────
+// Volta pelo histórico só se a navegação começou dentro da página
+// (quem abriu #canal/N direto pela URL sairia da página com history.back)
+let navegouAqui = false;
+function voltar() {
+  if (navegouAqui) history.back();
+  else location.replace('#cadastro');
+}
+$('#voltar').innerHTML = ico('voltar');
+$('#voltar').onclick = voltar;
+
+$('#view').addEventListener('click', e => {
+  const t = e.target.closest('[data-canal],[data-editar],[data-remover],#ota');
+  if (!t) return;
+  if (t.dataset.canal !== undefined) alternar(+t.dataset.canal);
+  else if (t.dataset.remover !== undefined) { e.stopPropagation(); confirmarRemocao(+t.dataset.remover); }
+  else if (t.dataset.editar !== undefined) location.hash = '#canal/' + t.dataset.editar;
+  else if (t.id === 'ota') verificarAtualizacao(t);
+});
+
+$('#view').addEventListener('change', e => {
+  if (e.target.id === 'modo') alterarModo(e.target.checked);
+});
+
+window.addEventListener('hashchange', () => { navegouAqui = true; render(); $('main').scrollTop = 0; });
+
+// Polling: sincroniza com mudanças feitas pelo app e detecta queda de conexão
+setInterval(() => { if (!document.hidden) atualizarEstado(); }, POLL_MS);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) { atualizarEstado(); carregarConsoles().then(() => { if (rota().tela !== 'canal') render(); }); }
+});
+
+render();
+Promise.all([carregarConsoles(), atualizarEstado()]).then(() => {
+  S.carregado = true;
+  render();
+});
+</script>
+</body>
+</html>

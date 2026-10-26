@@ -3,63 +3,72 @@
 #include <ESPmDNS.h>
 #include <esp_task_wdt.h>
 
+#include "ConsoleManager.h"
 #include "FirmwareController.h"
 #include "ReleManager.h"
 #include "WiFiMQTT.h"
+#include "web_index.h" // Gerado por scripts/embed_web.py a partir de web/index.html
 
 AsyncWebServer server(80);
-
-const char *html = R"rawliteral(
-<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Painel de Relés</title>
-<style>
-body { font-family: sans-serif; text-align: center; background: #f2f2f2; }
-h2 { margin: 20px; } .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 600px; margin: auto; }
-button { padding: 20px; font-size: 16px; border-radius: 8px; background: #d9d9d9; cursor: pointer; border: none; }
-button.ativo { background: #4CAF50; color: white; }
-select { margin: 20px auto; padding: 10px; font-size: 16px; }
-</style></head><body>
-<h2>Painel de Controle</h2>
-<label for='modo'>Modo:</label>
-<select id="modo" onchange="trocarModo(this.value)">
-  <option value="unico">Somente 1 Ligado</option>
-  <option value="multi">Vários (toggle)</option>
-</select>
-<div class="grid" id="grid"></div>
-<script>
-const grid = document.getElementById('grid');
-const nomes = Array.from({ length: 16 }, (_, i) => `Canal ${String(i+1).padStart(2,'0')}`);
-
-function trocarModo(valor) {
-  fetch(`/modo?valor=${valor}`);
-}
-
-function gerar() {
-  for (let i = 0; i < 16; i++) {
-    const b = document.createElement('button');
-    b.textContent = nomes[i];
-    b.onclick = () => {
-      fetch(`/ligar?canal=${i}`)
-        .then(() => {
-          if (document.getElementById("modo").value === "unico") {
-            document.querySelectorAll('button').forEach(x => x.classList.remove('ativo'));
-            b.classList.add('ativo');
-          } else {
-            b.classList.toggle('ativo');
-          }
-        });
-    };
-    grid.appendChild(b);
-  }
-}
-gerar();
-</script>
-</body></html>
-)rawliteral";
 
 void setupWebServer()
 {
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-            { request->send(200, "text/html", html); });
+            {
+    if (request->header("If-None-Match") == WEB_INDEX_ETAG) {
+      request->send(304);
+      return;
+    }
+    // Servida direto da flash, já comprimida
+    AsyncWebServerResponse *response = request->beginResponse_P(200, "text/html", WEB_INDEX_GZ, WEB_INDEX_GZ_LEN);
+    response->addHeader("Content-Encoding", "gzip");
+    response->addHeader("Cache-Control", "no-cache");
+    response->addHeader("ETag", WEB_INDEX_ETAG);
+    request->send(response); });
+
+  server.on("/estado", HTTP_GET, [](AsyncWebServerRequest *request)
+            {
+    JsonDocument doc;
+    doc["estado"] = estadoAtual;
+    doc["modo"] = getModoAtual() == ModoRele::MULTI ? "multi" : "unico";
+    doc["versao"] = firmwareVersion;
+    String body;
+    serializeJson(doc, body);
+    request->send(200, "application/json", body); });
+
+  server.on("/consoles", HTTP_GET, [](AsyncWebServerRequest *request)
+            { request->send(200, "application/json", carregarConsoles()); });
+
+  server.on(
+      "/consoles", HTTP_POST,
+      [](AsyncWebServerRequest *request)
+      {
+        // O corpo foi acumulado em _tempObject pelo handler abaixo (liberado pela própria lib)
+        if (!request->_tempObject) {
+          request->send(400, "text/plain", "Corpo ausente ou grande demais");
+          return;
+        }
+        String erro;
+        if (salvarConsoles((const char *)request->_tempObject, erro)) {
+          request->send(200, "application/json", carregarConsoles());
+        } else {
+          request->send(400, "text/plain", erro);
+        }
+      },
+      nullptr,
+      [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
+      {
+        if (index == 0) {
+          if (total > CONSOLES_MAX_BYTES)
+            return;
+          request->_tempObject = malloc(total + 1);
+        }
+        if (!request->_tempObject)
+          return;
+        memcpy((uint8_t *)request->_tempObject + index, data, len);
+        if (index + len == total)
+          ((char *)request->_tempObject)[total] = '\0';
+      });
 
   server.on("/ligar", HTTP_GET, [](AsyncWebServerRequest *request)
             {

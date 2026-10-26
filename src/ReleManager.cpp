@@ -37,28 +37,10 @@ void aplicarEstado()
 
 void alternarRele(int canal)
 {
-    if (canal < 0 || canal > 15)
+    if (canal < 0 || canal >= TOTAL_CANAIS)
         return;
 
-    if (modoAtual == ModoRele::UNICO)
-    {
-
-        // Liga somente o canal solicitado, desliga todos os outros
-        if ((estadoAtual & (1 << canal)) != 0)
-        {
-            estadoAtual = 0;
-        }
-        else
-        {
-            estadoAtual = (1 << canal);
-        }
-    }
-    else
-    {
-        // Liga ou desliga individualmente (toggle)
-        estadoAtual ^= (1 << canal);
-    }
-
+    estadoAtual = alternarCanal(estadoAtual, canal, modoAtual);
     aplicarEstado();
     salvarEstado();
 }
@@ -69,8 +51,7 @@ void setModo(ModoRele modo)
 
     if (modo == ModoRele::UNICO)
     {
-        // Mantém ligado apenas o primeiro canal ativo (mesma regra do app)
-        estadoAtual &= (uint16_t)(-estadoAtual);
+        estadoAtual = manterPrimeiroAtivo(estadoAtual);
         aplicarEstado();
     }
 
@@ -93,8 +74,8 @@ void salvarEstado()
 void carregarEstadoSalvo()
 {
     prefs.begin("retrorelay", true);
-    estadoAtual = prefs.getUInt("estado", 0);
-    modoAtual = (ModoRele)prefs.getUChar("modo", (uint8_t)ModoRele::UNICO);
+    modoAtual = modoSalvo(prefs.getUChar("modo", (uint8_t)ModoRele::UNICO));
+    estadoAtual = estadoRestaurado(prefs.getUInt("estado", 0), modoAtual);
     prefs.end();
 
     aplicarEstado();

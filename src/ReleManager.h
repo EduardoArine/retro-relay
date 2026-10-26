@@ -1,11 +1,6 @@
 #pragma once
 #include <Arduino.h>
-
-enum class ModoRele
-{
-    UNICO, // Apenas um pode estar ligado (exclusivo)
-    MULTI  // Vários podem estar ligados (toggle individual)
-};
+#include "logica/reles.h"
 
 void inicializarReles();
 void aplicarEstado();

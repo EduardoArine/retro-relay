@@ -8,6 +8,7 @@
 
 #include "ConexaoManager.h"
 #include "ReleManager.h"
+#include "logica/ota.h"
 
 extern String firmwareVersion;
 
@@ -139,14 +140,14 @@ String getLatestFirmwareVersion()
 void verificarAtualizacao()
 {
     // Build local (gravado pelo cabo) não tem versão: sem isso, seria trocado pela release
-    if (firmwareVersion.startsWith("#"))
+    if (ehBuildDesenvolvimento(firmwareVersion.c_str()))
     {
         Serial.println("Build de desenvolvimento: OTA desativado");
         return;
     }
 
     String remoteVersion = getLatestFirmwareVersion();
-    if (remoteVersion == "" || remoteVersion == firmwareVersion)
+    if (!haVersaoNova(remoteVersion.c_str(), firmwareVersion.c_str()))
     {
         versaoPendente = "";
         Serial.println("Firmware já está atualizado.");
@@ -203,39 +204,34 @@ void aplicarAtualizacao()
 
 void loopOTA()
 {
-    bool consolesDesligados = estadoAtual == 0;
-
-    // Firmware novo já gravado: reinicia assim que os consoles forem desligados
-    if (reinicioPendente)
-    {
-        if (consolesDesligados)
-            reiniciar(motivoReinicioOta);
-        return;
-    }
-
     unsigned long now = millis();
-    bool verificar = firmwareForceCheck || (now - lastCheckMillis >= intervalMillis);
-    bool instalar = versaoPendente != "" && consolesDesligados;
-    if (!verificar && !instalar)
-        return;
+    bool horaDeVerificar = firmwareForceCheck || decorrido(now, lastCheckMillis) >= intervalMillis;
 
-    esp_task_wdt_delete(NULL);
-
-    if (verificar)
+    switch (proximaAcaoOta(reinicioPendente, versaoPendente != "", horaDeVerificar, estadoAtual))
     {
+    case AcaoOta::REINICIAR:
+        reiniciar(motivoReinicioOta);
+        break;
+
+    case AcaoOta::VERIFICAR:
         firmwareForceCheck = false;
         lastCheckMillis = now;
         Serial.println("🚀 Executando verificação OTA");
+        esp_task_wdt_delete(NULL);
         verificarAtualizacao();
-    }
-
-    if (versaoPendente != "")
-    {
-        if (estadoAtual == 0)
-            aplicarAtualizacao();
-        else
+        esp_task_wdt_add(NULL);
+        // Se achou versão nova, a próxima volta do loop instala (consoles desligados)
+        if (versaoPendente != "" && estadoAtual != 0)
             Serial.println("⏸️ Atualização " + versaoPendente + " adiada até os consoles serem desligados");
-    }
+        break;
 
-    esp_task_wdt_add(NULL);
+    case AcaoOta::INSTALAR:
+        esp_task_wdt_delete(NULL);
+        aplicarAtualizacao();
+        esp_task_wdt_add(NULL);
+        break;
+
+    case AcaoOta::NADA:
+        break;
+    }
 }

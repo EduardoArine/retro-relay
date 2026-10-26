@@ -28,6 +28,9 @@ jobs:
   release:
     needs: testes
     runs-on: ubuntu-latest
+    env:
+      # Sem o secret, a release sai sem .sig (aparelhos registram "sem assinatura")
+      TEM_CHAVE_OTA: ${{ secrets.OTA_CHAVE_PRIVADA != '' }}
 
     steps:
       - name: Checkout código
@@ -66,12 +69,31 @@ jobs:
           mkdir firmware
           cp .pio/build/esp32dev/firmware.bin firmware/retrorelay-${{ steps.gitversion.outputs.semVer }}.bin
 
+      - name: Assinar firmware
+        if: env.TEM_CHAVE_OTA == 'true'
+        env:
+          OTA_CHAVE_PRIVADA: ${{ secrets.OTA_CHAVE_PRIVADA }}
+        run: |
+          BIN=firmware/retrorelay-${{ steps.gitversion.outputs.semVer }}.bin
+          CHAVE="$RUNNER_TEMP/chave.pem"
+          umask 077
+          printf '%s\n' "$OTA_CHAVE_PRIVADA" > "$CHAVE"
+          openssl dgst -sha256 -sign "$CHAVE" -out "$BIN.sig" "$BIN"
+          rm -f "$CHAVE"
+          # A chave do secret precisa ser uma das embutidas no firmware: senão os
+          # aparelhos recusariam esta versão quando a assinatura for obrigatória
+          openssl dgst -sha256 -verify certs/ota_principal.pub.pem -signature "$BIN.sig" "$BIN" \
+            || openssl dgst -sha256 -verify certs/ota_reserva.pub.pem -signature "$BIN.sig" "$BIN"
+
       - name: Criar release no GitHub
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.gitversion.outputs.semVer }}
           # A tag aponta para o commit compilado, não para o topo da main na hora de publicar
           target_commitish: ${{ github.sha }}
-          files: firmware/*.bin
+          # .bin primeiro: aparelhos até a 1.8.0 baixam o primeiro arquivo da release
+          files: |
+            firmware/*.bin
+            firmware/*.bin.sig
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

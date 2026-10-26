@@ -655,6 +655,7 @@ const MOTIVOS_REINICIO = {
   wifi_esquecido: 'Troca de rede Wi-Fi', restaurado_fabrica: 'Padrões de fábrica restaurados',
 };
 const CERTIFICADO_OTA = { ok: 'Verificado', falhou: 'Falhou (atualiza sem verificar)', nao_testado: 'Ainda não testado' };
+const ASSINATURA_OTA = { valida: 'Válida', invalida: 'Inválida', sem_assinatura: 'Versão sem assinatura', nao_testado: 'Ainda não testada' };
 
 // Dados do /diag para entender quando o dispositivo "some" da rede
 function diagHtml() {
@@ -673,6 +674,7 @@ function diagHtml() {
     ['Reconexões forçadas', d.wifi.reconexoes_forcadas],
     ['Memória livre', `${Math.round(d.memoria.livre / 1024)} KB (mínima ${Math.round(d.memoria.minima / 1024)} KB)`],
     ['Certificado do OTA', CERTIFICADO_OTA[d.ota?.certificado] || '—'],
+    ['Assinatura do firmware', (ASSINATURA_OTA[d.ota?.assinatura] || '—') + (d.ota?.assinatura_versao ? ` (${d.ota.assinatura_versao})` : '')],
   ];
   return `<dl class="diag">${itens.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`;
 }

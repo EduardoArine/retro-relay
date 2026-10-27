@@ -31,7 +31,7 @@
       "descricao": "Uma versão com problema nunca deve chegar a todos os aparelhos ao mesmo tempo.",
       "itens": [
         { "titulo": "OTA verifica o certificado do servidor", "descricao": "Fase de validação: verifica e registra o resultado no Diagnóstico, sem bloquear a atualização.", "status": "feito", "versao": "1.6.0" },
-        { "titulo": "Confirmar certificado e assinatura obrigatórios no aparelho", "descricao": "Depois de instalar a 1.11.0, o Diagnóstico deve mostrar \"Verificado · obrigatório\" e \"Válida · obrigatória\".", "status": "andamento", "responsavel": "Eduardo" },
+        { "titulo": "Confirmar certificado e assinatura obrigatórios no aparelho", "descricao": "Confirmado no aparelho com a 1.11.0: \"Verificado · obrigatório\" e \"Válida · obrigatória\".", "status": "feito", "responsavel": "Eduardo", "versao": "1.11.0" },
         { "titulo": "Tornar a verificação de certificado obrigatória", "descricao": "Cada aparelho passa a exigir o certificado na primeira vez que a verificação funciona nele, e não desliga mais.", "status": "feito", "versao": "1.11.0" },
         { "titulo": "Atualizar só com consoles desligados", "descricao": "A instalação espera todos os consoles serem desligados; a página avisa que há versão pendente.", "status": "feito", "versao": "1.6.0" },
         { "titulo": "Release só quando muda o firmware", "descricao": "Alterar documentação não gera mais versão nova nem reinicia aparelhos.", "status": "feito", "versao": "1.6.0" },

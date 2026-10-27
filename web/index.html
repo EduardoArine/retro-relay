@@ -400,6 +400,12 @@ async function atualizarEstado() {
     const d = await (await api('/estado')).json();
     setConectado(true);
     if (S.pendentes) return;
+    // Firmware novo traz página nova: recarrega para não ficar com a antiga
+    // (espera se a pessoa estiver digitando, para não perder o que escreveu)
+    if (S.versao && d.versao !== S.versao) {
+      if (!document.activeElement?.matches('input:not([type=checkbox]), textarea')) location.reload();
+      return;
+    }
     const atualizacao = d.atualizacao_pendente || '';
     const canal = d.canal || 'estavel';
     const mudou = d.estado !== S.estado || d.modo !== S.modo || d.versao !== S.versao || atualizacao !== S.atualizacao || (d.nome || '') !== S.nome || canal !== S.canal;

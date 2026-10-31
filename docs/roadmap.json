@@ -54,6 +54,7 @@
         { "titulo": "Senha única na etiqueta", "descricao": "Senha do portal de configuração por aparelho, com QR code na etiqueta.", "status": "a_fazer", "responsavel": "Eduardo" },
         { "titulo": "Trocar Wi-Fi e restaurar padrões pela página", "descricao": "Na Config: esquecer a rede (trocar de roteador) ou apagar tudo; só com consoles desligados.", "status": "feito", "versao": "1.8.0" },
         { "titulo": "Página se atualiza sozinha após o OTA", "descricao": "Uma aba aberta durante a atualização recarrega ao detectar a versão nova (espera se houver texto sendo digitado).", "status": "feito", "versao": "1.11.3" },
+        { "titulo": "Visual novo da página", "descricao": "Estilo Modo Campanha: \"Ligado agora\" com desligar tudo, estado escrito em cada console, avisos no topo, cadastro por canais livres e nome sugerido pela imagem.", "status": "feito", "versao": "1.12.0" },
         { "titulo": "Botão físico de reset de fábrica", "descricao": "Para quando não há acesso à página (Wi-Fi perdido). Depende de um pino livre na placa.", "status": "a_fazer", "responsavel": "Eduardo" },
         { "titulo": "Pareamento entre app e aparelho", "descricao": "Só quem pareou consegue controlar os relés.", "status": "a_fazer" },
         { "titulo": "Vários aparelhos na mesma casa", "descricao": "Nomes únicos na rede e app com lista de aparelhos.", "status": "a_fazer" },

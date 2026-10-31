@@ -417,15 +417,17 @@ const TOTAL_CANAIS = 16;
 const POLL_MS = 5000;
 const CDN = 'https://raw.githubusercontent.com/EduardoArine/retro-relay-images/refs/heads/main/';
 const IMAGENS = [
-  ['atari_2600', 'Atari 2600'],
-  ['nes', 'NES'], ['snes', 'Super Nintendo'], ['n64', 'Nintendo 64'], ['game_cube', 'GameCube'],
-  ['nintendo_wii', 'Wii'], ['nintendo_switch', 'Switch'],
-  ['master_system', 'Master System'], ['mega_drive', 'Mega Drive'], ['sega_saturn', 'Saturn'], ['sega_dreamcast', 'Dreamcast'],
+  ['atari_2600', 'Atari 2600'], ['atari_7800', 'Atari 7800'],
+  ['odyssey_2', 'Odyssey²'], ['intellivision', 'Intellivision'], ['colecovision', 'ColecoVision'],
+  ['nes', 'NES'], ['famicom', 'Famicom'], ['snes', 'Super Nintendo'], ['n64', 'Nintendo 64'], ['game_cube', 'GameCube'],
+  ['nintendo_wii', 'Wii'], ['nintendo_wii_u', 'Wii U'], ['nintendo_switch', 'Switch'], ['nintendo_switch_2', 'Switch 2'],
+  ['master_system', 'Master System'], ['mega_drive', 'Mega Drive'], ['sega_cd', 'Sega CD'], ['sega_saturn', 'Saturn'], ['sega_dreamcast', 'Dreamcast'],
   ['ps1', 'PlayStation'], ['ps2', 'PlayStation 2'], ['ps3', 'PlayStation 3'], ['ps4', 'PlayStation 4'], ['ps5', 'PlayStation 5'],
   ['xbox', 'Xbox'], ['xbox_360', 'Xbox 360'], ['xbox_one', 'Xbox One'], ['xbox_series_s', 'Xbox Series S'], ['xbox_series_x', 'Xbox Series X'],
   ['neogeo', 'Neo Geo'], ['neogeo_cd', 'Neo Geo CD'],
   ['pc_engine', 'PC Engine'], ['turbo_grafx', 'TurboGrafx-16'],
-  ['3do', '3DO'],
+  ['3do', '3DO'], ['cdi', 'CD-i'],
+  ['msx', 'MSX'], ['mister', 'MiSTer'], ['raspberry_pi', 'Raspberry Pi'],
 ].map(([arquivo, nome]) => ({ url: CDN + arquivo + '.png', nome }));
 
 // ─── Ícones em pixel art 16×16 (cada '#' é um pixel aceso) ─────────────────

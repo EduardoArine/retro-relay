@@ -3,310 +3,407 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#171212">
+<meta name="theme-color" content="#14110f">
 <title>Retro Relay</title>
 <!--
   Interface web do Retro Relay, servida pelo próprio ESP32.
-  Espelha o app Flutter (tema escuro roxo, Home / Cadastro / Config).
+  Visual baseado no Modo Campanha (eduardoarine.github.io/modo-campanha):
+  fundo tinta, texto creme, destaque laranja, cantos retos e fonte pixel.
   Este arquivo é comprimido e embutido no firmware por scripts/embed_web.py,
   então chega ao dispositivo junto com cada atualização OTA.
   Sem dependências externas: só as imagens dos consoles vêm do CDN.
 -->
 <style>
+/* Pixelify Sans (SIL Open Font License 1.1), reduzida às letras usadas em português */
+@font-face {
+  font-family: "Pixelify Sans";
+  src: url(data:font/woff2;base64,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) format("woff2");
+  font-weight: 400 700;
+  font-display: block;
+}
 :root {
-  /* Aproximação do ColorScheme.fromSeed(0xFF4A1080, dark) do app */
-  --bg: #171212;
-  --surface: #151218;
-  --surface-high: #2B2930;
-  --nav: #211F26;
-  --primary: #DCB8FF;
-  --on-primary: #3F0F6B;
-  --primary-container: #5A2C87;
-  --secondary-container: #4E4358;
-  --on-surface: #E7E0E8;
-  --on-surface-var: #CDC3CE;
-  --outline: #968E98;
-  --outline-var: #4B454D;
-  --inverse: #E7E0E8;
-  --on-inverse: #322F35;
-  --ok: #4CAF50;
-  --erro: #F44336;
+  --bg: #14110f;
+  --superficie: #1d1815;
+  --painel: #231f1c;
+  --elevado: #2b2521;
+  --texto: #f3e9d2;
+  --texto-2: #d7cbb5;
+  --apagado: #a89a86;
+  --borda: rgba(243, 233, 210, .12);
+  --borda-forte: rgba(243, 233, 210, .4);
+  --hover: rgba(243, 233, 210, .06);
+  --destaque: #f28c28;
+  --destaque-claro: #ffb357;
+  --destaque-escuro: #c96a1b;
+  --brilho: rgba(242, 140, 40, .24);
+  --tinta: #14110f;
+  --ok: #7fb069;
+  --perigo: #c44536;
+  --perigo-texto: #e07a5f;
+  --aviso: #f2c14e;
+  --pixel: "Pixelify Sans", ui-monospace, monospace;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 [hidden] { display: none !important; }
 html, body { margin: 0; height: 100%; }
 body {
   background: var(--bg);
-  color: var(--on-surface);
-  font: 14px/1.43 Roboto, system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--texto);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   display: flex;
   flex-direction: column;
 }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
-svg { width: 24px; height: 24px; fill: currentColor; flex: none; }
+:focus-visible { outline: 2px solid var(--destaque-claro); outline-offset: 2px; }
+svg { width: 20px; height: 20px; fill: currentColor; flex: none; shape-rendering: crispEdges; }
 
-/* AppBar */
+/* Cabeçalho */
 header {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  min-height: 56px;
-  padding: 0 16px;
-  padding-top: env(safe-area-inset-top);
+  display: flex; align-items: center; gap: 10px;
+  min-height: 60px;
+  padding: env(safe-area-inset-top) 16px 0;
+  border-bottom: 1px solid var(--borda);
   background: var(--bg);
-  position: sticky;
-  top: 0;
-  z-index: 2;
 }
-header h1 { font-size: 22px; font-weight: 400; margin: 0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-header .voltar { margin-left: -8px; }
+.marca {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--destaque); color: var(--tinta);
+  border-radius: 4px;
+  flex: none;
+}
+header h1 {
+  flex: 1; min-width: 0; margin: 0;
+  font: 500 20px/1 var(--pixel); letter-spacing: .04em; text-transform: uppercase;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+header h1.inicio { color: var(--destaque); }
+header .voltar { margin-left: -10px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 28px; padding: 0 10px;
+  border: 1px solid var(--destaque-escuro);
+  border-radius: 4px;
+  font-size: 11px; font-weight: 600; letter-spacing: .1em;
+  color: var(--ok);
+  flex: none;
+}
+.led { width: 8px; height: 8px; background: #3a332d; flex: none; }
+.chip .led { background: currentColor; }
+body.offline .chip { color: var(--perigo-texto); border-color: var(--perigo); }
 
 main { flex: 1; overflow-y: auto; }
-.conteudo { max-width: 960px; margin: 0 auto; }
+.conteudo { max-width: 960px; margin: 0 auto; padding: 0 16px 24px; }
 
-/* Botões de ícone e botões M3 */
+/* Avisos (sem conexão, atualização pendente) */
+.aviso {
+  margin: 12px 16px 0;
+  padding: 12px 14px;
+  background: var(--painel);
+  border-left: 3px solid var(--aviso);
+  border-radius: 4px;
+  color: var(--texto-2);
+  font-size: 14px;
+}
+.aviso b { color: var(--texto); display: block; }
+#offline { border-left-color: var(--perigo); }
+body:not(.offline) #offline { display: none; }
+/* Sem conexão o toque não chegaria ao aparelho: os controles ficam apagados */
+body.offline .agora, body.offline .grid { opacity: .45; pointer-events: none; }
+.conteudo .aviso { margin: 16px 0 0; }
+
+/* Textos */
+.rotulo {
+  font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--destaque);
+}
+.titulo-secao { margin: 24px 0 10px; }
+.sub { color: var(--apagado); font-size: 14px; }
+
+/* Botões */
+.btn {
+  height: 44px; padding: 0 18px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border: 1px solid transparent; border-radius: 4px;
+  font-weight: 600; white-space: nowrap; text-decoration: none; color: var(--texto);
+  transition: background .15s, border-color .15s, color .15s;
+}
+.btn.primario { background: var(--destaque); color: var(--tinta); }
+.btn.primario:hover { background: var(--destaque-claro); }
+.btn.primario:active { background: var(--destaque-escuro); }
+.btn.sec { border-color: var(--borda-forte); }
+.btn.sec:hover { background: var(--hover); }
+.btn.perigo { border-color: rgba(196, 69, 54, .7); color: var(--perigo-texto); }
+.btn.perigo:hover { background: rgba(196, 69, 54, .12); }
+.btn.perigo-cheio { background: var(--perigo); color: var(--texto); }
+.btn.pequeno { height: 36px; padding: 0 12px; font-size: 14px; }
+.btn:disabled { background: rgba(243, 233, 210, .04); border-color: var(--borda); color: var(--apagado); cursor: default; }
+.btn svg { width: 16px; height: 16px; }
 .icone-btn {
-  width: 40px; height: 40px;
+  width: 44px; height: 44px;
   display: inline-flex; align-items: center; justify-content: center;
-  border-radius: 50%;
-  color: var(--on-surface-var);
+  border-radius: 4px;
+  color: var(--texto-2);
+  flex: none;
 }
-.icone-btn:hover { background: rgba(231, 224, 232, .08); }
-.filled {
-  height: 40px; padding: 0 24px;
-  border-radius: 20px;
-  background: var(--primary); color: var(--on-primary);
-  font-weight: 500; letter-spacing: .1px;
-}
-.filled:disabled { background: rgba(231, 224, 232, .12); color: rgba(231, 224, 232, .38); cursor: default; }
-.texto-btn {
-  height: 40px; padding: 0 12px;
-  border-radius: 20px;
-  color: var(--primary); font-weight: 500;
-  display: inline-flex; align-items: center; gap: 8px;
-}
-.texto-btn svg { width: 18px; height: 18px; }
-.texto-btn:hover { background: rgba(220, 184, 255, .08); }
-.texto-btn:disabled { color: rgba(231, 224, 232, .38); cursor: default; }
-.texto-btn.perigo { color: #FFB4AB; }
-.texto-btn.perigo:hover { background: rgba(255, 180, 171, .08); }
+.icone-btn:hover { background: var(--hover); }
+.icone-btn.perigo { color: var(--perigo-texto); }
 
-/* Home: grid de consoles */
+/* Painel "ligado agora" */
+.agora {
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--superficie);
+  border: 1px solid var(--destaque-escuro);
+  border-radius: 4px;
+}
+.agora-linha { display: flex; align-items: center; gap: 12px; margin-top: 6px; }
+.agora-nome {
+  flex: 1; min-width: 0;
+  font: 500 22px/1.2 var(--pixel);
+  color: var(--destaque);
+  overflow-wrap: anywhere;
+}
+.agora-nome.nenhum { color: var(--apagado); }
+.agora .sub { margin-top: 6px; }
+
+/* Grade de consoles */
 .grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  padding: 12px;
+  gap: 12px;
+  margin-top: 16px;
 }
 @media (min-width: 600px) {
-  .grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
 }
 .card {
-  aspect-ratio: .9;
+  position: relative;
+  aspect-ratio: .82;
   display: flex; flex-direction: column;
-  background: var(--surface);
-  border: 1px solid var(--outline);
-  border-radius: 12px;
-  transition: background .2s, border-color .2s;
-  overflow: hidden;
-  text-align: center;
+  padding: 10px;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: 4px;
+  text-align: left;
+  transition: background .2s, border-color .2s, box-shadow .2s;
 }
+.card:hover { border-color: var(--borda-forte); }
 .card.ativo {
-  background: rgba(90, 44, 135, .3);
-  border: 2px solid var(--primary);
+  background: var(--painel);
+  border-color: var(--destaque);
+  box-shadow: 0 0 0 1px var(--destaque), 0 10px 28px -10px var(--brilho);
 }
+.ch { font: 500 12px/1 var(--pixel); letter-spacing: .08em; color: var(--apagado); }
+.card.ativo .ch { color: var(--destaque); }
 .card .img {
   flex: 1; min-height: 0;
   display: flex; align-items: center; justify-content: center;
-  padding: 8px;
+  padding: 8px 4px;
 }
-.card .img img { width: 100%; height: 100%; object-fit: contain; }
-.card .img svg { width: 40px; height: 40px; color: rgba(231, 224, 232, .2); }
+/* As fotos do CDN têm fundo cinza próprio: a moldura e o tom quente as integram ao painel */
+.card .img img, .thumb img, .imagens img { border: 1px solid var(--borda); border-radius: 2px; filter: sepia(.2); }
+.card .img img { height: 100%; max-width: 100%; aspect-ratio: 1; object-fit: contain; }
+.card .img svg, .thumb svg { width: 40px; height: 40px; color: var(--borda-forte); }
 .card .nome {
-  padding: 0 8px 10px;
-  font-size: 12px; line-height: 16px; letter-spacing: .4px;
+  font-weight: 600; font-size: 14px; line-height: 1.3;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
+.estado {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 6px;
+  font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--apagado);
+}
+.card.ativo .estado { color: var(--ok); }
+.card.ativo .led { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
 
 .vazio {
-  padding: 48px 24px;
+  margin-top: 16px;
+  padding: 32px 20px;
+  border: 1px dashed var(--borda-forte);
+  border-radius: 4px;
   text-align: center;
-  white-space: pre-line;
-  color: rgba(231, 224, 232, .5);
+  color: var(--texto-2);
 }
+.vazio > svg { width: 48px; height: 48px; color: var(--destaque); }
+.vazio h2 { margin: 12px 0 6px; font: 500 20px/1.2 var(--pixel); text-transform: uppercase; color: var(--texto); }
+.vazio p { margin: 0 0 20px; }
 
-/* Cadastro: lista de canais */
-.tile {
-  display: flex; align-items: center; gap: 16px;
-  min-height: 72px;
-  padding: 8px 8px 8px 16px;
+/* Cadastro */
+.lista { border: 1px solid var(--borda); border-radius: 4px; background: var(--superficie); }
+.item {
+  display: flex; align-items: center; gap: 12px;
+  min-height: 68px;
+  padding: 8px 4px 8px 12px;
   cursor: pointer;
 }
-.tile:hover { background: rgba(231, 224, 232, .05); }
-.avatar {
-  width: 40px; height: 40px;
-  border-radius: 50%;
-  background: var(--surface-high);
+.item + .item { border-top: 1px solid var(--borda); }
+.item:hover { background: var(--hover); }
+.item .ch { width: 40px; flex: none; }
+.thumb {
+  width: 44px; height: 44px;
   display: flex; align-items: center; justify-content: center;
-  overflow: hidden; flex: none;
+  flex: none;
 }
-.avatar img { width: 100%; height: 100%; object-fit: cover; }
-.tile .textos { flex: 1; min-width: 0; }
-.tile .titulo { font-size: 16px; line-height: 24px; }
-.tile .sub { color: var(--on-surface-var); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.thumb img { width: 100%; height: 100%; object-fit: contain; }
+.thumb svg { width: 28px; height: 28px; }
+.item .textos { flex: 1; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.livres { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.livre {
+  height: 48px;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  border: 1px dashed var(--borda-forte); border-radius: 4px;
+  font: 500 14px/1 var(--pixel); letter-spacing: .06em;
+  color: var(--texto-2);
+}
+.livre:hover { border-color: var(--destaque); color: var(--destaque); }
+.livre svg { width: 12px; height: 12px; }
 
-/* Formulários */
-.form { padding: 16px; display: flex; flex-direction: column; }
-.campo { position: relative; margin-top: 8px; }
-.campo input {
-  width: 100%; height: 56px;
-  padding: 0 16px;
-  background: transparent;
-  color: var(--on-surface);
+/* Formulário do canal */
+.form { display: flex; flex-direction: column; padding-top: 16px; }
+.form label.rotulo { margin-bottom: 8px; }
+.form input {
+  width: 100%; height: 48px;
+  padding: 0 14px;
+  background: var(--superficie);
+  color: var(--texto);
   font: inherit; font-size: 16px;
-  border: 1px solid var(--outline);
+  border: 1px solid var(--borda-forte);
   border-radius: 4px;
   outline: none;
 }
-.campo input:focus { border: 2px solid var(--primary); padding: 0 15px; }
-.campo label {
-  position: absolute; left: 12px; top: -8px;
-  padding: 0 4px;
-  background: var(--bg);
-  font-size: 12px; line-height: 16px;
-  color: var(--on-surface-var);
-}
-.campo input:focus + label { color: var(--primary); }
-.secao { font-size: 14px; font-weight: 500; letter-spacing: .1px; margin: 24px 0 8px; }
+.form input:focus { border-color: var(--destaque); box-shadow: 0 0 0 3px var(--brilho); }
+.form input::placeholder { color: var(--apagado); }
+.form .dica { margin-top: 8px; }
 .imagens {
-  display: flex; gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 8px;
-  scroll-snap-type: x proximity;
-  scrollbar-width: thin;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
 }
 .imagens button {
-  flex: none;
-  width: 72px; height: 90px;
-  border: 1px solid var(--outline);
-  border-radius: 8px;
-  overflow: hidden;
-  scroll-snap-align: start;
-  display: flex; align-items: center; justify-content: center;
-  transition: border-color .15s;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 8px 4px;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: 4px;
+  font-size: 12px; line-height: 1.2; color: var(--texto-2);
 }
-.imagens button.sel { border: 2px solid var(--primary); }
-.imagens img { width: 100%; height: 100%; object-fit: contain; }
-.form .filled { margin-top: 32px; }
+.imagens button:hover { border-color: var(--borda-forte); }
+.imagens button.sel { border-color: var(--destaque); box-shadow: 0 0 0 1px var(--destaque); background: var(--painel); color: var(--texto); }
+.imagens .foto { width: 100%; height: 56px; display: flex; align-items: center; justify-content: center; }
+.imagens img { height: 100%; aspect-ratio: 1; object-fit: contain; }
+.imagens .foto svg { width: 28px; height: 28px; color: var(--borda-forte); }
+.salvar-barra {
+  position: sticky; bottom: 0;
+  margin: 0 -16px;
+  padding: 16px;
+  background: linear-gradient(transparent, var(--bg) 35%);
+}
+.salvar-barra .btn { width: 100%; }
 
-/* Config */
-.linha { display: flex; align-items: center; gap: 16px; padding: 12px 16px; }
-.linha .textos { flex: 1; }
-.linha .titulo { font-size: 16px; line-height: 24px; }
-.linha .sub { color: var(--on-surface-var); }
-.status { display: flex; align-items: center; gap: 6px; font-size: 12px; }
-.status svg { width: 16px; height: 16px; }
-.status.on { color: var(--ok); }
-.status.off { color: var(--erro); }
-hr { border: 0; border-top: 1px solid var(--outline-var); margin: 8px 0; }
-.secao-titulo { padding: 12px 16px 4px; font-weight: 500; letter-spacing: .1px; color: var(--primary); }
-.diag { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 0; padding: 4px 16px 16px; }
-.diag dt { color: var(--on-surface-var); }
+/* Ajustes */
+.grupo { border: 1px solid var(--borda); border-radius: 4px; background: var(--superficie); }
+.linha { display: flex; align-items: center; gap: 16px; padding: 14px 16px; }
+.linha + .linha { border-top: 1px solid var(--borda); }
+.linha .textos { flex: 1; min-width: 0; }
+.linha .titulo { font-weight: 600; }
+.linha .sub { overflow-wrap: anywhere; }
+.linha .nota { color: var(--aviso); font-size: 14px; margin-top: 4px; }
+label.linha { cursor: pointer; }
+.diag { display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; margin: 0; padding: 0 16px 16px; font-size: 14px; }
+.diag dt { color: var(--apagado); }
 .diag dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+.abrir-diag { width: 100%; justify-content: space-between; padding: 14px 16px; height: auto; color: var(--texto-2); font-weight: 600; }
+.abrir-diag svg { width: 12px; height: 12px; transition: transform .2s; }
+.abrir-diag[aria-expanded="true"] svg { transform: rotate(180deg); }
 
-/* Switch M3 */
-.switch { position: relative; width: 52px; height: 32px; flex: none; }
+/* Interruptor */
+.switch { position: relative; width: 48px; height: 28px; flex: none; }
 .switch input { opacity: 0; width: 100%; height: 100%; margin: 0; position: absolute; cursor: pointer; z-index: 1; }
 .switch .trilho {
   position: absolute; inset: 0;
-  border-radius: 16px;
-  background: var(--surface-high);
-  border: 2px solid var(--outline);
+  border-radius: 4px;
+  background: var(--elevado);
+  border: 1px solid var(--borda-forte);
   transition: background .2s, border-color .2s;
 }
 .switch .trilho::after {
   content: "";
-  position: absolute; top: 6px; left: 6px;
-  width: 16px; height: 16px;
-  border-radius: 50%;
-  background: var(--outline);
-  transition: all .2s;
+  position: absolute; top: 3px; left: 3px;
+  width: 20px; height: 20px;
+  border-radius: 2px;
+  background: var(--apagado);
+  transition: left .2s, background .2s;
 }
-.switch input:checked + .trilho { background: var(--primary); border-color: var(--primary); }
-.switch input:checked + .trilho::after { left: 22px; top: 2px; width: 24px; height: 24px; background: var(--on-primary); }
+.switch input:checked + .trilho { background: var(--destaque); border-color: var(--destaque); }
+.switch input:checked + .trilho::after { left: 23px; background: var(--tinta); }
+.switch input:focus-visible + .trilho { outline: 2px solid var(--destaque-claro); outline-offset: 2px; }
 
-/* NavigationBar */
+/* Navegação inferior */
 nav {
   display: flex;
-  height: 80px;
+  height: 64px;
   padding-bottom: env(safe-area-inset-bottom);
-  background: var(--nav);
+  background: var(--superficie);
+  border-top: 1px solid var(--borda);
   box-sizing: content-box;
 }
 nav a {
+  position: relative;
   flex: 1;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
-  color: var(--on-surface-var);
+  color: var(--apagado);
   text-decoration: none;
-  font-size: 12px; font-weight: 500; letter-spacing: .5px;
+  font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
 }
-nav .pilula {
-  position: relative;
-  width: 64px; height: 32px;
-  border-radius: 16px;
-  display: flex; align-items: center; justify-content: center;
-  transition: background .2s;
-}
-nav a.sel { color: var(--on-surface); }
-nav a.sel .pilula { background: var(--secondary-container); }
-nav .badge {
-  position: absolute; top: 4px; left: 38px;
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--erro);
-  display: none;
-}
-body.offline nav .badge { display: block; }
+nav a.sel { color: var(--destaque); }
+nav a.sel::before { content: ""; position: absolute; top: -1px; left: 25%; right: 25%; height: 2px; background: var(--destaque); }
 
-/* SnackBar */
+/* Aviso rápido */
 #toast {
-  position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom));
+  position: fixed; left: 50%; bottom: calc(80px + env(safe-area-inset-bottom));
   transform: translate(-50%, 16px);
   max-width: calc(100% - 32px); width: max-content;
-  padding: 14px 16px;
+  padding: 12px 16px;
+  background: var(--elevado); color: var(--texto);
+  border: 1px solid var(--borda-forte); border-left: 3px solid var(--destaque);
   border-radius: 4px;
-  background: var(--inverse); color: var(--on-inverse);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, .4);
+  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, .7);
   opacity: 0; pointer-events: none;
   transition: opacity .2s, transform .2s;
   z-index: 10;
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-/* AlertDialog */
+/* Diálogo */
 .scrim {
   position: fixed; inset: 0;
-  background: rgba(0, 0, 0, .5);
+  background: rgba(20, 17, 15, .75);
   display: flex; align-items: center; justify-content: center;
   padding: 24px;
   z-index: 20;
 }
 .dialogo {
-  width: 100%; max-width: 360px;
-  padding: 24px 24px 16px;
-  border-radius: 28px;
-  background: var(--surface-high);
+  width: 100%; max-width: 380px;
+  padding: 20px;
+  background: var(--painel);
+  border: 1px solid var(--destaque-escuro);
+  border-radius: 4px;
 }
-.dialogo h2 { margin: 0 0 16px; font-size: 24px; font-weight: 400; }
-.dialogo p { margin: 0; color: var(--on-surface-var); }
-.dialogo .acoes { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
+.dialogo h2 { margin: 0 0 10px; font: 500 20px/1.2 var(--pixel); text-transform: uppercase; }
+.dialogo p { margin: 0; color: var(--texto-2); }
+.dialogo .acoes { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
 </style>
 </head>
 <body>
 <header>
   <button class="icone-btn voltar" id="voltar" hidden aria-label="Voltar"></button>
+  <span class="marca" id="marca" aria-hidden="true"></span>
   <h1 id="titulo">Retro Relay</h1>
+  <span class="chip" id="chip" role="status"><span class="led"></span><span id="chip-texto">Online</span></span>
 </header>
+<div class="aviso" id="offline" role="alert"><b>Sem conexão com o Retro Relay</b>Confira se o celular está no mesmo Wi-Fi. Tentando de novo…</div>
 <main><div class="conteudo" id="view"></div></main>
 <nav id="nav"></nav>
 <div id="toast" role="status"></div>
@@ -319,31 +416,165 @@ const TOTAL_CANAIS = 16;
 const POLL_MS = 5000;
 const CDN = 'https://raw.githubusercontent.com/EduardoArine/retro-relay-images/refs/heads/main/';
 const IMAGENS = [
-  'atari_2600.png',
-  'nes.png', 'snes.png', 'n64.png', 'game_cube.png', 'nintendo_wii.png', 'nintendo_switch.png',
-  'master_system.png', 'mega_drive.png', 'sega_saturn.png', 'sega_dreamcast.png',
-  'ps1.png', 'ps2.png', 'ps3.png', 'ps4.png', 'ps5.png',
-  'xbox.png', 'xbox_360.png', 'xbox_one.png', 'xbox_series_s.png', 'xbox_series_x.png',
-  'neogeo.png', 'neogeo_cd.png',
-  'pc_engine.png', 'turbo_grafx.png',
-  '3do.png',
-].map(n => CDN + n);
+  ['atari_2600', 'Atari 2600'],
+  ['nes', 'NES'], ['snes', 'Super Nintendo'], ['n64', 'Nintendo 64'], ['game_cube', 'GameCube'],
+  ['nintendo_wii', 'Wii'], ['nintendo_switch', 'Switch'],
+  ['master_system', 'Master System'], ['mega_drive', 'Mega Drive'], ['sega_saturn', 'Saturn'], ['sega_dreamcast', 'Dreamcast'],
+  ['ps1', 'PlayStation'], ['ps2', 'PlayStation 2'], ['ps3', 'PlayStation 3'], ['ps4', 'PlayStation 4'], ['ps5', 'PlayStation 5'],
+  ['xbox', 'Xbox'], ['xbox_360', 'Xbox 360'], ['xbox_one', 'Xbox One'], ['xbox_series_s', 'Xbox Series S'], ['xbox_series_x', 'Xbox Series X'],
+  ['neogeo', 'Neo Geo'], ['neogeo_cd', 'Neo Geo CD'],
+  ['pc_engine', 'PC Engine'], ['turbo_grafx', 'TurboGrafx-16'],
+  ['3do', '3DO'],
+].map(([arquivo, nome]) => ({ url: CDN + arquivo + '.png', nome }));
 
-// ─── Ícones Material (SVG inline) ─────────────────────────────────────────
-const ICONES = {
-  home: '<path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>',
-  homeOutline: '<path d="M12 5.69l5 4.5V18h-2v-6H9v6H7v-7.81l5-4.5M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/>',
-  lista: '<path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>',
-  config: '<path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/>',
-  editar: '<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM5.92 19H5v-.92l9.06-9.06.92.92L5.92 19zM20.71 5.63l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83a1 1 0 0 0 0-1.41z"/>',
-  remover: '<path d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"/>',
-  voltar: '<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>',
-  console: '<path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 10H3V8h18v8zM6 15h2v-2h2v-2H8V9H6v2H4v2h2v2z"/><circle cx="14.5" cy="13.5" r="1.5"/><circle cx="18.5" cy="10.5" r="1.5"/>',
-  wifi: '<path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.24 4.24 0 0 0-6 0zm-4-4l2 2a7.07 7.07 0 0 1 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/>',
-  wifiOff: '<path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.24 4.24 0 0 0-6 0zm-4-4l2 2a7.07 7.07 0 0 1 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" opacity=".4"/><path d="M3.5 2.1L2.1 3.5l18.4 18.4 1.4-1.4z"/>',
-  atualizar: '<path d="M17.65 6.35A7.96 7.96 0 0 0 12 4a8 8 0 1 0 7.73 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>',
+// ─── Ícones em pixel art 16×16 (cada '#' é um pixel aceso) ─────────────────
+const PIXELS = {
+  console: [
+    '', '', '',
+    '..############..',
+    '.##############.',
+    '###.########.###',
+    '##...######.#.##',
+    '###.########.###',
+    '################',
+    '#######..#######',
+    '######....######',
+    '#####......#####',
+    '.###........###.',
+  ],
+  lista: [
+    '', '',
+    '.##.##########..',
+    '.##.##########..',
+    '', '',
+    '.##.##########..',
+    '.##.##########..',
+    '', '',
+    '.##.##########..',
+    '.##.##########..',
+  ],
+  ajustes: [
+    '',
+    '......####......',
+    '..##..####..##..',
+    '..############..',
+    '...##########...',
+    '..#####..#####..',
+    '######....######',
+    '######....######',
+    '######....######',
+    '######....######',
+    '..#####..#####..',
+    '...##########...',
+    '..############..',
+    '..##..####..##..',
+    '......####......',
+  ],
+  voltar: [
+    '', '',
+    '......##........',
+    '.....##.........',
+    '....##..........',
+    '...##...........',
+    '..############..',
+    '..############..',
+    '...##...........',
+    '....##..........',
+    '.....##.........',
+    '......##........',
+  ],
+  editar: [
+    '',
+    '............##..',
+    '...........####.',
+    '............###.',
+    '.........##..#..',
+    '........####....',
+    '.......#####....',
+    '......#####.....',
+    '.....#####......',
+    '....#####.......',
+    '....####........',
+    '...#.##.........',
+    '...##...........',
+    '..#.............',
+  ],
+  remover: [
+    '',
+    '......####......',
+    '..############..',
+    '',
+    '...##########...',
+    '...##.#..#.##...',
+    '...##.#..#.##...',
+    '...##.#..#.##...',
+    '...##.#..#.##...',
+    '...##.#..#.##...',
+    '...##.#..#.##...',
+    '...##########...',
+  ],
+  mais: [
+    '', '',
+    '.......##.......',
+    '.......##.......',
+    '.......##.......',
+    '.......##.......',
+    '..############..',
+    '..############..',
+    '.......##.......',
+    '.......##.......',
+    '.......##.......',
+    '.......##.......',
+  ],
+  atualizar: [
+    '', '',
+    '.....######.....',
+    '...############.',
+    '...###....####..',
+    '..###......##...',
+    '..##.......##...',
+    '..##............',
+    '..##............',
+    '..##........##..',
+    '..###......###..',
+    '...###....###...',
+    '...##########...',
+    '.....######.....',
+  ],
+  energia: [
+    '',
+    '.......##.......',
+    '...##..##..##...',
+    '..##...##...##..',
+    '.##....##....##.',
+    '.##....##....##.',
+    '##.....##.....##',
+    '##............##',
+    '##............##',
+    '##............##',
+    '.##..........##.',
+    '.##..........##.',
+    '..##........##..',
+    '...##########...',
+    '.....######.....',
+  ],
+  seta: [
+    '', '', '', '', '',
+    '..##........##..',
+    '...##......##...',
+    '....##....##....',
+    '.....##..##.....',
+    '......####......',
+    '.......##.......',
+  ],
 };
-const ico = nome => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONES[nome]}</svg>`;
+function pixelIcone(linhas) {
+  let d = '';
+  linhas.forEach((linha, y) => linha.replace(/#+/g, (m, x) => (d += `M${x} ${y}h${m.length}v1h-${m.length}z`, m)));
+  return `<path d="${d}"/>`;
+}
+const ICONES = Object.fromEntries(Object.entries(PIXELS).map(([nome, linhas]) => [nome, pixelIcone(linhas)]));
+const ico = nome => `<svg viewBox="0 0 16 16" aria-hidden="true">${ICONES[nome]}</svg>`;
 
 // ─── Estado ───────────────────────────────────────────────────────────────
 const S = {
@@ -354,7 +585,8 @@ const S = {
   conectado: true,
   carregado: false,
   pendentes: 0,       // toggles em andamento (pausa o polling do estado)
-  diag: null,         // resposta do /diag (carregada ao abrir a Config)
+  diag: null,         // resposta do /diag (carregada ao abrir os Ajustes)
+  diagAberto: false,  // detalhes técnicos expandidos
   atualizacao: '',    // versão nova esperando os consoles desligarem
   nome: '',           // nome único do aparelho (retrorelay-a3f2)
   reiniciando: '',    // rede do portal de configuração após um reset pela página
@@ -362,7 +594,9 @@ const S = {
 };
 
 const ativo = i => (S.estado & (1 << i)) !== 0;
+const ligados = () => [...Array(TOTAL_CANAIS).keys()].filter(ativo);
 const $ = sel => document.querySelector(sel);
+const ch = i => 'CH ' + String(i + 1).padStart(2, '0');
 
 function esc(s) {
   return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -392,6 +626,7 @@ function setConectado(ok) {
   if (S.conectado === ok) return;
   S.conectado = ok;
   document.body.classList.toggle('offline', !ok);
+  $('#chip-texto').textContent = ok ? 'Online' : 'Offline';
   if (rota().tela === 'config') render();
 }
 
@@ -463,6 +698,26 @@ async function alternar(i) {
   }
 }
 
+// /ligar alterna o canal, então cada passo confere o estado real antes: se o app
+// mudar algo no meio, nada é religado por engano
+async function desligarTudo() {
+  S.estado = 0;
+  render();
+  S.pendentes++;
+  try {
+    for (let passo = 0; passo < TOTAL_CANAIS; passo++) {
+      const { estado } = await (await api('/estado')).json();
+      if (!estado) break;
+      await api('/ligar?canal=' + (31 - Math.clz32(estado & -estado)));
+    }
+  } catch {
+    toast('Falha ao comunicar com o dispositivo');
+  } finally {
+    S.pendentes--;
+    atualizarEstado();
+  }
+}
+
 async function alterarModo(unico) {
   try {
     await api('/modo?valor=' + (unico ? 'unico' : 'multi'));
@@ -508,7 +763,7 @@ const RESETS = {
     botao: 'Trocar',
   },
   'restaurar-fabrica': {
-    titulo: 'Restaurar padrões de fábrica',
+    titulo: 'Restaurar padrões',
     texto: 'Apaga o Wi-Fi, todos os consoles cadastrados e o modo, e reinicia. Não dá para desfazer.',
     botao: 'Restaurar',
   },
@@ -552,12 +807,13 @@ function toast(msg) {
   toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
 }
 
+// Toda confirmação deste app é destrutiva: o botão de ação vem em vermelho
 function dialogo(titulo, textoHtml, acao, aoConfirmar) {
   const scrim = document.createElement('div');
   scrim.className = 'scrim';
-  scrim.innerHTML = `<div class="dialogo" role="dialog" aria-modal="true">
-    <h2>${esc(titulo)}</h2><p>${textoHtml}</p>
-    <div class="acoes"><button class="texto-btn" data-r="0">Cancelar</button><button class="texto-btn" data-r="1">${esc(acao)}</button></div>
+  scrim.innerHTML = `<div class="dialogo" role="dialog" aria-modal="true" aria-labelledby="dialogo-titulo">
+    <h2 id="dialogo-titulo">${esc(titulo)}</h2><p>${textoHtml}</p>
+    <div class="acoes"><button class="btn sec pequeno" data-r="0">Cancelar</button><button class="btn perigo-cheio pequeno" data-r="1">${esc(acao)}</button></div>
   </div>`;
   scrim.onclick = e => {
     const r = e.target.dataset.r;
@@ -566,104 +822,159 @@ function dialogo(titulo, textoHtml, acao, aoConfirmar) {
     if (r === '1') aoConfirmar();
   };
   document.body.appendChild(scrim);
+  scrim.querySelector('[data-r="0"]').focus();
+}
+
+function avisoAtualizacao() {
+  return S.atualizacao
+    ? `<div class="aviso" role="status"><b>Atualização ${esc(S.atualizacao)} pronta</b>Instala sozinha quando todos os consoles estiverem desligados.</div>`
+    : '';
 }
 
 // ─── Telas ────────────────────────────────────────────────────────────────
+function painelAgora() {
+  const on = ligados();
+  const nomes = on.map(i => S.consoles[i]?.nome || `Canal ${i + 1}`);
+  const titulo = !on.length ? 'Nenhum console' : on.length === 1 ? nomes[0] : `${on.length} consoles`;
+  const sub = S.modo === 'unico'
+    ? 'Modo único: ligar um console desliga o outro'
+    : 'Modo vários: os consoles podem ficar ligados juntos';
+  return `<section class="agora" aria-live="polite">
+    <div class="rotulo">Ligado agora</div>
+    <div class="agora-linha">
+      <div class="agora-nome${on.length ? '' : ' nenhum'}">${esc(titulo)}</div>
+      ${on.length ? `<button class="btn sec pequeno" id="desligar">${ico('energia')}${on.length > 1 ? 'Desligar todos' : 'Desligar'}</button>` : ''}
+    </div>
+    <div class="sub">${sub}</div>
+  </section>`;
+}
+
+function primeiroLivre() {
+  for (let i = 0; i < TOTAL_CANAIS; i++) if (!S.consoles[i]) return i;
+  return 0;
+}
+
 function telaHome() {
   const canais = Object.keys(S.consoles).map(Number).sort((a, b) => a - b);
   if (!canais.length) {
-    return `<div class="vazio">${S.carregado ? 'Nenhum console cadastrado.\nAcesse "Cadastro" para configurar.' : 'Carregando…'}</div>`;
+    if (!S.carregado) return '<div class="vazio">Carregando…</div>';
+    return `<div class="vazio">${ico('console')}
+      <h2>Nenhum console</h2>
+      <p>Cadastre os consoles ligados ao Retro Relay para controlá-los por aqui.</p>
+      <a class="btn primario" href="#canal/${primeiroLivre()}">${ico('mais')}Cadastrar console</a>
+    </div>`;
   }
-  return `<div class="grid">${canais.map(i => {
+  return avisoAtualizacao() + painelAgora() + `<div class="grid">${canais.map(i => {
     const c = S.consoles[i];
-    return `<button class="card${ativo(i) ? ' ativo' : ''}" data-canal="${i}" aria-pressed="${ativo(i)}">
+    const on = ativo(i);
+    return `<button class="card${on ? ' ativo' : ''}" data-canal="${i}" aria-pressed="${on}" aria-label="${esc(c.nome)}, ${on ? 'ligado' : 'desligado'}">
+      <span class="ch">${ch(i)}</span>
       <div class="img">${imagemHtml(c.imagem, ico('console'))}</div>
       <div class="nome">${esc(c.nome)}</div>
+      <span class="estado"><span class="led"></span>${on ? 'Ligado' : 'Desligado'}</span>
     </button>`;
   }).join('')}</div>`;
 }
 
 function telaCadastro() {
-  let html = '';
-  for (let i = 0; i < TOTAL_CANAIS; i++) {
-    const c = S.consoles[i];
-    html += `<div class="tile" data-editar="${i}">
-      <div class="avatar">${c ? imagemHtml(c.imagem, ico('console')) : ico('console')}</div>
-      <div class="textos"><div class="titulo">Slot ${i + 1}</div>${c ? `<div class="sub">${esc(c.nome)}</div>` : ''}</div>
-      <button class="icone-btn" data-editar="${i}" title="Editar" aria-label="Editar">${ico('editar')}</button>
-      ${c ? `<button class="icone-btn" data-remover="${i}" title="Remover" aria-label="Remover">${ico('remover')}</button>` : ''}
-    </div>`;
-  }
-  return html;
+  const usados = [], livres = [];
+  for (let i = 0; i < TOTAL_CANAIS; i++) (S.consoles[i] ? usados : livres).push(i);
+  const lista = usados.length
+    ? `<div class="lista">${usados.map(i => {
+        const c = S.consoles[i];
+        return `<div class="item" data-editar="${i}">
+          <span class="ch">${ch(i)}</span>
+          <div class="thumb">${imagemHtml(c.imagem, ico('console'))}</div>
+          <div class="textos">${esc(c.nome)}</div>
+          <button class="icone-btn" data-editar="${i}" title="Editar" aria-label="Editar ${esc(c.nome)}">${ico('editar')}</button>
+          <button class="icone-btn perigo" data-remover="${i}" title="Remover" aria-label="Remover ${esc(c.nome)}">${ico('remover')}</button>
+        </div>`;
+      }).join('')}</div>`
+    : '<p class="sub">Nenhum console cadastrado ainda. Escolha abaixo a saída do Retro Relay em que o console está ligado.</p>';
+  return `<div class="rotulo titulo-secao">Consoles · ${usados.length} de ${TOTAL_CANAIS}</div>${lista}
+    ${livres.length ? `<div class="rotulo titulo-secao">Canais livres</div>
+    <div class="livres">${livres.map(i => `<button class="livre" data-editar="${i}" aria-label="Cadastrar no canal ${i + 1}">${ico('mais')}${ch(i)}</button>`).join('')}</div>` : ''}`;
 }
 
 function telaCanal(i) {
   const c = S.consoles[i] || { nome: '', imagem: '' };
+  const opcoes = [{ url: '', nome: 'Sem imagem' }, ...IMAGENS];
   return `<form class="form" id="form-canal" autocomplete="off">
-    <div class="campo">
-      <input id="nome" maxlength="32" placeholder="Ex: Super Nintendo" value="${esc(c.nome)}" autocapitalize="words">
-      <label for="nome">Nome do console</label>
-    </div>
-    <div class="secao">Imagem</div>
-    <div class="imagens" id="imagens">${IMAGENS.map(url =>
-      `<button type="button" data-img="${esc(url)}"${url === c.imagem ? ' class="sel"' : ''}>${imagemHtml(url, '')}</button>`
+    <label class="rotulo" for="nome">Nome do console</label>
+    <input id="nome" maxlength="32" placeholder="Ex: Super Nintendo" value="${esc(c.nome)}" autocapitalize="words">
+    <div class="sub dica">Ligue o console na saída ${i + 1} do Retro Relay.</div>
+    <div class="rotulo titulo-secao">Imagem</div>
+    <div class="imagens" id="imagens">${opcoes.map(o =>
+      `<button type="button" data-img="${esc(o.url)}" data-nome="${o.url ? esc(o.nome) : ''}"${o.url === c.imagem ? ' class="sel"' : ''}>
+        <span class="foto">${imagemHtml(o.url, ico('console'))}</span>${esc(o.nome)}</button>`
     ).join('')}</div>
-    <button class="filled" id="salvar" type="submit"${c.nome.trim() ? '' : ' disabled'}>Salvar</button>
+    <div class="salvar-barra"><button class="btn primario" id="salvar" type="submit"${c.nome.trim() ? '' : ' disabled'}>Salvar</button></div>
   </form>`;
 }
 
 function telaConfig() {
   const versao = !S.versao || S.versao.startsWith('#') ? 'desenvolvimento' : S.versao;
   return `
-    <div class="linha">
-      <div class="textos">
-        <div class="titulo">Dispositivo</div>
-        <div class="sub">${S.nome ? esc(S.nome) + ' · ' : ''}http://${esc(location.host)}</div>
+    <div class="rotulo titulo-secao">Aparelho</div>
+    <div class="grupo">
+      <div class="linha">
+        <div class="textos">
+          <div class="titulo">${S.nome ? esc(S.nome) : 'Retro Relay'}</div>
+          <div class="sub">http://${esc(location.host)}</div>
+        </div>
+        <span class="estado" style="margin:0;color:${S.conectado ? 'var(--ok)' : 'var(--perigo-texto)'}"><span class="led" style="background:currentColor"></span>${S.conectado ? 'Conectado' : 'Sem conexão'}</span>
       </div>
-      <div class="status ${S.conectado ? 'on' : 'off'}">${ico(S.conectado ? 'wifi' : 'wifiOff')}${S.conectado ? 'Conectado' : 'Sem conexão'}</div>
+      <label class="linha">
+        <div class="textos">
+          <div class="titulo">Modo único</div>
+          <div class="sub">Ligar um console desliga o que estiver ligado</div>
+        </div>
+        <span class="switch"><input type="checkbox" id="modo"${S.modo === 'unico' ? ' checked' : ''}><span class="trilho"></span></span>
+      </label>
     </div>
-    <hr>
-    <label class="linha" style="cursor:pointer">
-      <div class="textos">
-        <div class="titulo">Modo único</div>
-        <div class="sub">Apenas um console ativo por vez</div>
+
+    <div class="rotulo titulo-secao">Atualizações</div>
+    <div class="grupo">
+      <div class="linha">
+        <div class="textos">
+          <div class="titulo">Versão ${esc(versao)}</div>
+          ${S.atualizacao
+            ? `<div class="nota">Versão ${esc(S.atualizacao)} será instalada quando os consoles forem desligados</div>`
+            : '<div class="sub">Atualiza sozinho pela internet</div>'}
+        </div>
+        <button class="btn sec pequeno" id="ota">${ico('atualizar')}Verificar</button>
       </div>
-      <span class="switch"><input type="checkbox" id="modo"${S.modo === 'unico' ? ' checked' : ''}><span class="trilho"></span></span>
-    </label>
-    <hr>
-    <div class="linha">
-      <div class="textos">
-        <div class="titulo">Firmware</div>
-        <div class="sub">Versão ${esc(versao)}</div>
-        ${S.atualizacao ? `<div class="sub" style="color:var(--primary)">Versão ${esc(S.atualizacao)} será instalada quando os consoles forem desligados</div>` : ''}
-      </div>
-      <button class="texto-btn" id="ota">${ico('atualizar')}Verificar atualização</button>
+      <label class="linha">
+        <div class="textos">
+          <div class="titulo">Versões beta</div>
+          <div class="sub">Recebe versões novas antes dos clientes, para testar</div>
+        </div>
+        <span class="switch"><input type="checkbox" id="beta"${S.canal === 'beta' ? ' checked' : ''}><span class="trilho"></span></span>
+      </label>
     </div>
-    <label class="linha" style="cursor:pointer">
-      <div class="textos">
-        <div class="titulo">Versões beta</div>
-        <div class="sub">Recebe versões novas antes dos clientes, para testar</div>
-      </div>
-      <span class="switch"><input type="checkbox" id="beta"${S.canal === 'beta' ? ' checked' : ''}><span class="trilho"></span></span>
-    </label>
-    <hr>
-    <div class="secao-titulo">Diagnóstico</div>
-    ${diagHtml()}
-    <hr>
-    <div class="secao-titulo">Manutenção</div>
-    <div class="linha">
-      <div class="textos">
-        <div class="titulo">Trocar rede Wi-Fi</div>
-        <div class="sub">Esquece o Wi-Fi atual e abre a rede de configuração</div>
-      </div>
-      <button class="texto-btn perigo" id="esquecer-wifi">Trocar</button>
+
+    <div class="rotulo titulo-secao">Diagnóstico</div>
+    <div class="grupo">
+      <button class="btn abrir-diag" id="abrir-diag" aria-expanded="${S.diagAberto}">Detalhes técnicos${ico('seta')}</button>
+      ${S.diagAberto ? diagHtml() : ''}
     </div>
-    <div class="linha">
-      <div class="textos">
-        <div class="titulo">Restaurar padrões de fábrica</div>
-        <div class="sub">Apaga Wi-Fi, consoles cadastrados e modo</div>
+
+    <div class="rotulo titulo-secao">Manutenção</div>
+    <div class="grupo">
+      <div class="linha">
+        <div class="textos">
+          <div class="titulo">Trocar rede Wi-Fi</div>
+          <div class="sub">Esquece o Wi-Fi atual e abre a rede de configuração</div>
+        </div>
+        <button class="btn perigo pequeno" id="esquecer-wifi">Trocar</button>
       </div>
-      <button class="texto-btn perigo" id="restaurar-fabrica">Restaurar</button>
+      <div class="linha">
+        <div class="textos">
+          <div class="titulo">Restaurar padrões</div>
+          <div class="sub">Apaga Wi-Fi, consoles cadastrados e modo</div>
+        </div>
+        <button class="btn perigo pequeno" id="restaurar-fabrica">Restaurar</button>
+      </div>
     </div>`;
 }
 
@@ -717,31 +1028,34 @@ function rota() {
 }
 
 const ABAS = [
-  { tela: 'home', rotulo: 'Home', icone: 'homeOutline', iconeSel: 'home' },
-  { tela: 'cadastro', rotulo: 'Cadastro', icone: 'lista', iconeSel: 'lista' },
-  { tela: 'config', rotulo: 'Config', icone: 'config', iconeSel: 'config', badge: true },
+  { tela: 'home', rotulo: 'Consoles', icone: 'console' },
+  { tela: 'cadastro', rotulo: 'Cadastro', icone: 'lista' },
+  { tela: 'config', rotulo: 'Ajustes', icone: 'ajustes' },
 ];
 
 function render() {
   if (S.reiniciando) {
     $('#titulo').textContent = 'Reiniciando';
     $('#voltar').hidden = true;
-    $('#view').innerHTML = `<div class="vazio">O Retro Relay está reiniciando.
-
-Para configurar o Wi-Fi, conecte o celular à rede <b>${esc(S.reiniciando)}</b> e siga as instruções que aparecerem.</div>`;
+    $('#view').innerHTML = `<div class="vazio">${ico('ajustes')}
+      <h2>Reiniciando</h2>
+      <p>Para configurar o Wi-Fi, conecte o celular à rede <b>${esc(S.reiniciando)}</b> e siga as instruções que aparecerem.</p>
+    </div>`;
     return;
   }
 
   const r = rota();
   const aba = r.tela === 'canal' ? 'cadastro' : r.tela;
-  const titulos = { home: 'Retro Relay', cadastro: 'Cadastro', config: 'Configurações', canal: `Canal ${r.canal + 1}` };
+  const titulos = { home: 'Retro Relay', cadastro: 'Cadastro', config: 'Ajustes', canal: `Canal ${r.canal + 1}` };
 
   $('#titulo').textContent = titulos[r.tela];
+  $('#titulo').classList.toggle('inicio', r.tela === 'home');
   document.title = r.tela === 'home' ? 'Retro Relay' : titulos[r.tela] + ' · Retro Relay';
   $('#voltar').hidden = r.tela !== 'canal';
+  $('#marca').hidden = r.tela === 'canal';
 
   $('#nav').innerHTML = ABAS.map(a => `<a href="#${a.tela}"${a.tela === aba ? ' class="sel" aria-current="page"' : ''}>
-    <span class="pilula">${ico(a.tela === aba ? a.iconeSel : a.icone)}${a.badge ? '<span class="badge"></span>' : ''}</span>${a.rotulo}</a>`).join('');
+    ${ico(a.icone)}${a.rotulo}</a>`).join('');
 
   const telas = { home: telaHome, cadastro: telaCadastro, config: telaConfig, canal: () => telaCanal(r.canal) };
   $('#view').innerHTML = telas[r.tela]();
@@ -751,6 +1065,9 @@ Para configurar o Wi-Fi, conecte o celular à rede <b>${esc(S.reiniciando)}</b> 
 function ligarFormCanal(i) {
   const form = $('#form-canal'), nome = $('#nome'), salvar = $('#salvar');
   let imagem = (S.consoles[i] || {}).imagem || '';
+  // Nome sugerido pela imagem escolhida: troca junto com a imagem enquanto
+  // a pessoa não escrever outro
+  let sugerido = (IMAGENS.find(o => o.url === imagem) || {}).nome || '';
 
   nome.oninput = () => { salvar.disabled = !nome.value.trim(); };
   $('#imagens').onclick = e => {
@@ -758,6 +1075,11 @@ function ligarFormCanal(i) {
     if (!b) return;
     imagem = b.dataset.img;
     form.querySelectorAll('[data-img]').forEach(x => x.classList.toggle('sel', x === b));
+    if (b.dataset.nome && (!nome.value.trim() || nome.value === sugerido)) {
+      nome.value = b.dataset.nome;
+      salvar.disabled = false;
+    }
+    sugerido = b.dataset.nome;
   };
   form.onsubmit = async e => {
     e.preventDefault();
@@ -773,8 +1095,7 @@ function ligarFormCanal(i) {
     }
   };
   const sel = form.querySelector('.sel');
-  if (sel) sel.scrollIntoView({ inline: 'center', block: 'nearest' });
-  if (!S.consoles[i]) nome.focus();
+  if (sel && imagem) sel.scrollIntoView({ block: 'nearest' });
 }
 
 // ─── Eventos ──────────────────────────────────────────────────────────────
@@ -787,14 +1108,17 @@ function voltar() {
 }
 $('#voltar').innerHTML = ico('voltar');
 $('#voltar').onclick = voltar;
+$('#marca').innerHTML = ico('console');
 
 $('#view').addEventListener('click', e => {
-  const t = e.target.closest('[data-canal],[data-editar],[data-remover],#ota,#esquecer-wifi,#restaurar-fabrica');
+  const t = e.target.closest('[data-canal],[data-editar],[data-remover],#ota,#desligar,#abrir-diag,#esquecer-wifi,#restaurar-fabrica');
   if (!t) return;
   if (t.dataset.canal !== undefined) alternar(+t.dataset.canal);
   else if (t.dataset.remover !== undefined) { e.stopPropagation(); confirmarRemocao(+t.dataset.remover); }
   else if (t.dataset.editar !== undefined) location.hash = '#canal/' + t.dataset.editar;
   else if (t.id === 'ota') verificarAtualizacao(t);
+  else if (t.id === 'desligar') desligarTudo();
+  else if (t.id === 'abrir-diag') { S.diagAberto = !S.diagAberto; render(); }
   else if (RESETS[t.id]) confirmarReset(t.id);
 });
 

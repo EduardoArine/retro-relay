@@ -57,6 +57,7 @@
         { "titulo": "Visual novo da página", "descricao": "Estilo Modo Campanha: \"Ligado agora\" com desligar tudo, estado escrito em cada console, avisos no topo, cadastro por canais livres e nome sugerido pela imagem.", "status": "feito", "versao": "1.12.0" },
         { "titulo": "Imagens dos consoles em pixel art", "descricao": "Os 26 consoles redesenhados no estilo da página, com fundo transparente: de ~45 MB para 108 KB no total.", "status": "feito", "versao": "1.12.2" },
         { "titulo": "Mais 12 consoles na escolha de imagem", "descricao": "Famicom, Wii U, Switch 2, Sega CD, Atari 7800, ColecoVision, Intellivision, Odyssey², MSX, CD-i, MiSTer e Raspberry Pi, agrupados por fabricante.", "status": "feito", "versao": "1.12.4" },
+        { "titulo": "Ícone na aba e mais 4 consoles", "descricao": "favicon servido pelo próprio aparelho; Jaguar, 32X, Super Famicom e Phantom System gerados a partir de fotos de referência (42 consoles no total).", "status": "feito", "versao": "1.12.6" },
         { "titulo": "Botão físico de reset de fábrica", "descricao": "Para quando não há acesso à página (Wi-Fi perdido). Depende de um pino livre na placa.", "status": "a_fazer", "responsavel": "Eduardo" },
         { "titulo": "Pareamento entre app e aparelho", "descricao": "Só quem pareou consegue controlar os relés.", "status": "a_fazer" },
         { "titulo": "Vários aparelhos na mesma casa", "descricao": "Nomes únicos na rede e app com lista de aparelhos.", "status": "a_fazer" },

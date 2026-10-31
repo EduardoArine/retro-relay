@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#14110f">
 <title>Retro Relay</title>
+<link rel="icon" href="/favicon.ico">
 <!--
   Interface web do Retro Relay, servida pelo próprio ESP32.
   Visual baseado no Modo Campanha (eduardoarine.github.io/modo-campanha):
@@ -417,11 +418,12 @@ const TOTAL_CANAIS = 16;
 const POLL_MS = 5000;
 const CDN = 'https://raw.githubusercontent.com/EduardoArine/retro-relay-images/refs/heads/main/';
 const IMAGENS = [
-  ['atari_2600', 'Atari 2600'], ['atari_7800', 'Atari 7800'],
+  ['atari_2600', 'Atari 2600'], ['atari_7800', 'Atari 7800'], ['atari_jaguar', 'Jaguar'],
   ['odyssey_2', 'Odyssey²'], ['intellivision', 'Intellivision'], ['colecovision', 'ColecoVision'],
-  ['nes', 'NES'], ['famicom', 'Famicom'], ['snes', 'Super Nintendo'], ['n64', 'Nintendo 64'], ['game_cube', 'GameCube'],
+  ['nes', 'NES'], ['famicom', 'Famicom'], ['phantom_system', 'Phantom System'],
+  ['snes', 'Super Nintendo'], ['super_famicom', 'Super Famicom'], ['n64', 'Nintendo 64'], ['game_cube', 'GameCube'],
   ['nintendo_wii', 'Wii'], ['nintendo_wii_u', 'Wii U'], ['nintendo_switch', 'Switch'], ['nintendo_switch_2', 'Switch 2'],
-  ['master_system', 'Master System'], ['mega_drive', 'Mega Drive'], ['sega_cd', 'Sega CD'], ['sega_saturn', 'Saturn'], ['sega_dreamcast', 'Dreamcast'],
+  ['master_system', 'Master System'], ['mega_drive', 'Mega Drive'], ['sega_cd', 'Sega CD'], ['sega_32x', '32X'], ['sega_saturn', 'Saturn'], ['sega_dreamcast', 'Dreamcast'],
   ['ps1', 'PlayStation'], ['ps2', 'PlayStation 2'], ['ps3', 'PlayStation 3'], ['ps4', 'PlayStation 4'], ['ps5', 'PlayStation 5'],
   ['xbox', 'Xbox'], ['xbox_360', 'Xbox 360'], ['xbox_one', 'Xbox One'], ['xbox_series_s', 'Xbox Series S'], ['xbox_series_x', 'Xbox Series X'],
   ['neogeo', 'Neo Geo'], ['neogeo_cd', 'Neo Geo CD'],

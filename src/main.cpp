@@ -28,6 +28,13 @@ void setupWebServer()
     response->addHeader("ETag", WEB_INDEX_ETAG);
     request->send(response); });
 
+  server.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *request)
+            {
+    AsyncWebServerResponse *response = request->beginResponse(200, "image/x-icon", WEB_FAVICON, WEB_FAVICON_LEN);
+    // Só muda com o firmware; uma semana de cache evita pedir de novo a cada página
+    response->addHeader("Cache-Control", "max-age=604800");
+    request->send(response); });
+
   server.on("/estado", HTTP_GET, [](AsyncWebServerRequest *request)
             {
     JsonDocument doc;

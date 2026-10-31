@@ -201,8 +201,9 @@ body.offline .agora, body.offline .grid { opacity: .45; pointer-events: none; }
   display: flex; align-items: center; justify-content: center;
   padding: 8px 4px;
 }
-/* As fotos do CDN têm fundo cinza próprio: a moldura e o tom quente as integram ao painel */
-.card .img img, .thumb img, .imagens img { border: 1px solid var(--borda); border-radius: 2px; filter: sepia(.2); }
+/* Pixel art com fundo transparente: o halo claro destaca os consoles pretos no card escuro */
+.card .img, .thumb, .imagens .foto { background: radial-gradient(closest-side, rgba(243, 233, 210, .1), transparent); }
+.card.ativo .img { background: radial-gradient(closest-side, var(--brilho), transparent); }
 .card .img img { height: 100%; max-width: 100%; aspect-ratio: 1; object-fit: contain; }
 .card .img svg, .thumb svg { width: 40px; height: 40px; color: var(--borda-forte); }
 .card .nome {

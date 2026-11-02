@@ -296,6 +296,8 @@ body.offline .agora, body.offline .grid { opacity: .45; pointer-events: none; }
 .imagens .foto { width: 100%; height: 56px; display: flex; align-items: center; justify-content: center; }
 .imagens img { height: 100%; aspect-ratio: 1; object-fit: contain; }
 .imagens .foto svg { width: 28px; height: 28px; color: var(--borda-forte); }
+.grupo-imagens { margin: 16px 0 8px; font-size: 13px; color: var(--texto-2); }
+.grupo-imagens:first-child { margin-top: 0; }
 .salvar-barra {
   position: sticky; bottom: 0;
   margin: 0 -16px;
@@ -430,6 +432,14 @@ const IMAGENS = [
   ['pc_engine', 'PC Engine'], ['turbo_grafx', 'TurboGrafx-16'],
   ['3do', '3DO'], ['cdi', 'CD-i'],
   ['msx', 'MSX'], ['mister', 'MiSTer'], ['raspberry_pi', 'Raspberry Pi'],
+].map(([arquivo, nome]) => ({ url: CDN + arquivo + '.png', nome }));
+// O que mais costuma ficar ligado junto: telas, vídeo, áudio, jogos e ambiente
+const ACESSORIOS = [
+  ['tv_crt', 'TV de tubo'], ['tv_moderna', 'TV'], ['monitor_pvm', 'Monitor PVM'],
+  ['upscaler', 'Upscaler'], ['chaveador_hdmi', 'Chaveador HDMI'], ['chaveador_av', 'Chaveador AV'],
+  ['receiver', 'Receiver'], ['soundbar', 'Soundbar'], ['caixas_som', 'Caixas de som'],
+  ['fliperama', 'Fliperama'], ['bartop', 'Bartop'], ['pc_gamer', 'PC gamer'], ['carregador_controles', 'Carregador de controles'],
+  ['fita_led', 'Fita LED'], ['neon', 'Neon'], ['ventilador', 'Ventilador'],
 ].map(([arquivo, nome]) => ({ url: CDN + arquivo + '.png', nome }));
 
 // ─── Ícones em pixel art 16×16 (cada '#' é um pixel aceso) ─────────────────
@@ -903,16 +913,21 @@ function telaCadastro() {
 
 function telaCanal(i) {
   const c = S.consoles[i] || { nome: '', imagem: '' };
-  const opcoes = [{ url: '', nome: 'Sem imagem' }, ...IMAGENS];
+  const botoes = opcoes => opcoes.map(o =>
+    `<button type="button" data-img="${esc(o.url)}" data-nome="${o.url ? esc(o.nome) : ''}"${o.url === c.imagem ? ' class="sel"' : ''}>
+      <span class="foto">${imagemHtml(o.url, ico('console'))}</span>${esc(o.nome)}</button>`
+  ).join('');
   return `<form class="form" id="form-canal" autocomplete="off">
-    <label class="rotulo" for="nome">Nome do console</label>
+    <label class="rotulo" for="nome">Nome</label>
     <input id="nome" maxlength="32" placeholder="Ex: Super Nintendo" value="${esc(c.nome)}" autocapitalize="words">
-    <div class="sub dica">Ligue o console na saída ${i + 1} do Retro Relay.</div>
+    <div class="sub dica">Ligue o aparelho na saída ${i + 1} do Retro Relay.</div>
     <div class="rotulo titulo-secao">Imagem</div>
-    <div class="imagens" id="imagens">${opcoes.map(o =>
-      `<button type="button" data-img="${esc(o.url)}" data-nome="${o.url ? esc(o.nome) : ''}"${o.url === c.imagem ? ' class="sel"' : ''}>
-        <span class="foto">${imagemHtml(o.url, ico('console'))}</span>${esc(o.nome)}</button>`
-    ).join('')}</div>
+    <div id="imagens">
+      <div class="grupo-imagens">Consoles</div>
+      <div class="imagens">${botoes([{ url: '', nome: 'Sem imagem' }, ...IMAGENS])}</div>
+      <div class="grupo-imagens">Acessórios e aparelhos</div>
+      <div class="imagens">${botoes(ACESSORIOS)}</div>
+    </div>
     <div class="salvar-barra"><button class="btn primario" id="salvar" type="submit"${c.nome.trim() ? '' : ' disabled'}>Salvar</button></div>
   </form>`;
 }
@@ -1072,7 +1087,7 @@ function ligarFormCanal(i) {
   let imagem = (S.consoles[i] || {}).imagem || '';
   // Nome sugerido pela imagem escolhida: troca junto com a imagem enquanto
   // a pessoa não escrever outro
-  let sugerido = (IMAGENS.find(o => o.url === imagem) || {}).nome || '';
+  let sugerido = ([...IMAGENS, ...ACESSORIOS].find(o => o.url === imagem) || {}).nome || '';
 
   nome.oninput = () => { salvar.disabled = !nome.value.trim(); };
   $('#imagens').onclick = e => {

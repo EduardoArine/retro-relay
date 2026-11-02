@@ -1,4 +1,4 @@
-# Gera include/web_index.h a partir de web/index.html antes de cada build.
+# Gera include/web_index.h a partir de web/index.html (e dos ícones em web/) antes de cada build.
 #
 # A página vai comprimida (gzip) dentro do firmware, e não no SPIFFS, para
 # que toda atualização OTA leve junto a interface web correspondente.
@@ -13,7 +13,6 @@ Import("env")
 
 project_dir = env.subst("$PROJECT_DIR")
 src_path = os.path.join(project_dir, "web", "index.html")
-ico_path = os.path.join(project_dir, "web", "favicon.ico")
 dst_path = os.path.join(project_dir, "include", "web_index.h")
 
 with open(src_path, "rb") as f:
@@ -35,17 +34,25 @@ for i in range(0, len(gz), 20):
     lines.append("  " + ",".join(f"0x{b:02x}" for b in gz[i:i + 20]) + ",")
 lines.append("};")
 
-# Ícone da aba: o .ico já é comprimido (PNG por dentro), vai como está
-with open(ico_path, "rb") as f:
-    ico = f.read()
-lines += [
-    "",
-    f"const size_t WEB_FAVICON_LEN = {len(ico)};",
-    "const uint8_t WEB_FAVICON[] PROGMEM = {",
+# Ícones (símbolo do Modo Campanha): já são pequenos e comprimidos, vão como estão
+ICONES = [
+    ("favicon.ico", "WEB_FAVICON_ICO"),
+    ("favicon.svg", "WEB_FAVICON_SVG"),
+    ("apple-touch-icon.png", "WEB_APPLE_TOUCH"),
 ]
-for i in range(0, len(ico), 20):
-    lines.append("  " + ",".join(f"0x{b:02x}" for b in ico[i:i + 20]) + ",")
-lines.append("};")
+tamanhos = []
+for arquivo, nome in ICONES:
+    with open(os.path.join(project_dir, "web", arquivo), "rb") as f:
+        dados = f.read()
+    tamanhos.append(f"{arquivo}: {len(dados)}")
+    lines += [
+        "",
+        f"const size_t {nome}_LEN = {len(dados)};",
+        f"const uint8_t {nome}[] PROGMEM = {{",
+    ]
+    for i in range(0, len(dados), 20):
+        lines.append("  " + ",".join(f"0x{b:02x}" for b in dados[i:i + 20]) + ",")
+    lines.append("};")
 header = "\n".join(lines) + "\n"
 
 # Só reescreve se mudou, para não forçar recompilação à toa
@@ -58,4 +65,4 @@ if current != header:
     with open(dst_path, "w", encoding="utf-8", newline="\n") as f:
         f.write(header)
 
-print(f"web/index.html: {len(html)} bytes -> {len(gz)} bytes gzip; favicon.ico: {len(ico)} bytes")
+print(f"web/index.html: {len(html)} bytes -> {len(gz)} bytes gzip; " + ", ".join(tamanhos) + " bytes")

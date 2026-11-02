@@ -28,12 +28,20 @@ void setupWebServer()
     response->addHeader("ETag", WEB_INDEX_ETAG);
     request->send(response); });
 
-  server.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *request)
-            {
-    AsyncWebServerResponse *response = request->beginResponse(200, "image/x-icon", WEB_FAVICON, WEB_FAVICON_LEN);
-    // Só muda com o firmware; uma semana de cache evita pedir de novo a cada página
-    response->addHeader("Cache-Control", "max-age=604800");
-    request->send(response); });
+  // Ícones (símbolo do Modo Campanha). Só mudam com o firmware: uma semana de
+  // cache evita pedir de novo a cada página
+  auto servirIcone = [](const char *caminho, const char *tipo, const uint8_t *dados, size_t tamanho)
+  {
+    server.on(caminho, HTTP_GET, [tipo, dados, tamanho](AsyncWebServerRequest *request)
+              {
+      AsyncWebServerResponse *response = request->beginResponse(200, tipo, dados, tamanho);
+      response->addHeader("Cache-Control", "max-age=604800");
+      request->send(response); });
+  };
+  servirIcone("/favicon.ico", "image/x-icon", WEB_FAVICON_ICO, WEB_FAVICON_ICO_LEN);
+  servirIcone("/favicon.svg", "image/svg+xml", WEB_FAVICON_SVG, WEB_FAVICON_SVG_LEN);
+  // O iOS pede este endereço sozinho ao adicionar a página à tela inicial
+  servirIcone("/apple-touch-icon.png", "image/png", WEB_APPLE_TOUCH, WEB_APPLE_TOUCH_LEN);
 
   server.on("/estado", HTTP_GET, [](AsyncWebServerRequest *request)
             {
